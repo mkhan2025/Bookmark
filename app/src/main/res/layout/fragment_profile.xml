@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.Profile">
+
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="?attr/actionBarSize"-->
+<!--        android:id = "@+id/toolbar"-->
+<!--        android:background = "@color/colorPrimary"-->
+<!--        android:elevation = "2dp"-->
+<!--        app:contentInsetEnd="0dp"-->
+<!--        app:contentInsetStart="0dp"-->
+
+<!--        >-->
+
+<!--        <RelativeLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent">-->
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Username"-->
+<!--                android:id = "@+id/toolbarNameTV"-->
+<!--                android:textStyle="bold"-->
+<!--                android:layout_centerInParent="true"-->
+<!--                android:textSize="18sp"/>-->
+<!--            <ImageButton-->
+<!--                android:contentDescription="null"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_alignParentEnd="true"-->
+<!--                android:layout_centerVertical="true"-->
+<!--                android:background="@drawable/menu"-->
+<!--                android:layout_margin="8sp"-->
+<!--                android:id = "@+id/menuBtn"-->
+<!--                android:layout_alignParentRight="true"-->
+<!--                />-->
+
+<!--        </RelativeLayout>-->
+<!--    </androidx.appcompat.widget.Toolbar>-->
+
+    <LinearLayout
+        android:id = "@+id/linear_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="120dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profilePic"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_margin="14dp"
+            android:src="@drawable/girl"
+            app:civ_border_color="#181717"
+            app:civ_border_width="1dp" />
+
+        <ImageButton
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignEnd="@id/profilePic"
+            android:layout_alignBottom="@id/profilePic"
+            android:src = "@drawable/edit"
+            android:background="@drawable/circle"
+            android:elevation="3dp"
+            android:id="@+id/edit_profileImage"
+            />
+
+</RelativeLayout>
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical"
+        android:gravity="center"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textSize="25dp"
+            android:text="Username"
+            android:padding="4dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorBlack"
+            android:id="@+id/nameTV"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="3"
+            android:padding="4dp"
+            android:text="This is a test bio"
+            android:textSize="20dp"
+            android:paddingTop = "5dp"
+            android:textColor="@color/colorBlack"
+            android:layout_below = "@id/nameTV"
+            android:id="@+id/bioTV"
+            />
+    </LinearLayout>
+    </LinearLayout>
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/linear_1"
+    android:id = "@+id/combinedLayout">
+    <LinearLayout
+        android:id = "@+id/countLayout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="250"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:id="@+id/followingCountTV"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Following"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:gravity="center_horizontal"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="25K"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:id = "@+id/followersCountTV"
+                android:textColor="@color/colorBlack"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Followers"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:gravity="center_horizontal"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="30"
+                android:textStyle="bold"
+                android:id = "@+id/postCountTV"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Posts"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textColor="@color/colorBlack"
+                android:gravity="center_horizontal"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id = "@+id/followLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#139008"
+            android:text="@string/follow"
+            android:textColor="@color/colorPrimary"
+            android:minWidth="160dp"
+            android:id="@+id/followBtn"
+            android:layout_centerHorizontal="true"
+            />
+    </RelativeLayout>
+</RelativeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#D0CECE"
+        android:layout_below="@id/combinedLayout"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:id = "@+id/view"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id = "@+id/recyclerView"
+        android:layout_below="@id/view"/>
+        
+</RelativeLayout>

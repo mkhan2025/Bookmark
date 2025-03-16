@@ -112,22 +112,24 @@ public class Home extends Fragment {
             }
 
             for (QueryDocumentSnapshot snapshot : value) {
-                String uid = snapshot.getString("uid") != null ? snapshot.getString("uid") : "";
-                String profileImage = snapshot.getString("profileImage") != null ? snapshot.getString("profileImage") : "";
-                String postImage = snapshot.getString("postImage") != null ? snapshot.getString("postImage") : "";
-                String username = snapshot.getString("name") != null ? snapshot.getString("username") : "";
-                String comment = snapshot.getString("comment") != null ? snapshot.getString("comment") : "";
-                String description = snapshot.getString("description") != null ? snapshot.getString("description") : "";
-                String id = snapshot.getString("id") != null ? snapshot.getString("id") : "";
-                int likeCount = snapshot.contains("likeCount") ? snapshot.getLong("likeCount").intValue() : 0;
-                int localPostImage = snapshot.contains("localPostImage") ? snapshot.getLong("localPostImage").intValue() : 0;
-
-                list.add(new HomeModel(uid, profileImage, postImage, username, comment, description, id, likeCount, localPostImage));
+//                String uid = snapshot.getString("uid") != null ? snapshot.getString("uid") : "";
+//                String profileImage = snapshot.getString("profileImage") != null ? snapshot.getString("profileImage") : "";
+//                String postImage = snapshot.getString("postImage") != null ? snapshot.getString("postImage") : "";
+//                String username = snapshot.getString("name") != null ? snapshot.getString("username") : "";
+//                String comment = snapshot.getString("comment") != null ? snapshot.getString("comment") : "";
+//                String description = snapshot.getString("description") != null ? snapshot.getString("description") : "";
+//                String id = snapshot.getString("id") != null ? snapshot.getString("id") : "";
+//                int likeCount = snapshot.contains("likeCount") ? snapshot.getLong("likeCount").intValue() : 0;
+//                int localPostImage = snapshot.contains("localPostImage") ? snapshot.getLong("localPostImage").intValue() : 0;
+//
+//                list.add(new HomeModel(uid, profileImage, postImage, username, comment, description, id, likeCount, localPostImage));
+                if (!snapshot.exists()){
+                    return;
+                }
+                HomeModel model = snapshot.toObject(HomeModel.class);
+                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getUsername(), model.getComment(), model.getDescription(), model.getId(), model.getLikeCount(), model.getLocalPostImage()));
             }
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
-            }
+            adapter.notifyDataSetChanged();
         });
     }
 

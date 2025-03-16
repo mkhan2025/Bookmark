@@ -48,7 +48,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
         Glide.with(context.getApplicationContext())
-                .load(list.get(position).getLocalPostImage())  // Use local resource
+                .load(list.get(position).getImageUrl())  // Use local resource
                 .placeholder(R.drawable.map)  // Replace with a placeholder if needed
                 .timeout(7000)
                 .into(holder.imageView);
@@ -61,6 +61,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         } else {
             holder.likeCountTV.setText(likeCount + " Likes");
         }
+        holder.descriptionTV.setText(list.get(position).getDescription());
 
     }
 
@@ -72,9 +73,10 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     static class HomeHolder extends RecyclerView.ViewHolder {
         private CircleImageView profilePic;
         private TextView usernameTV;
-        private TextView timeTV;
+//        private TextView timeTV;
 
         private TextView likeCountTV;
+        private TextView descriptionTV;
         private ImageView imageView;
         private ImageButton likeBtn;
         private ImageButton commentBtn;
@@ -86,12 +88,14 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             super(itemView);
             profilePic = itemView.findViewById(R.id.profilePic);
             usernameTV = itemView.findViewById(R.id.usernameTV);
-            timeTV = itemView.findViewById(R.id.timeTV);
+//            timeTV = itemView.findViewById(R.id.timeTV);
             likeCountTV = itemView.findViewById(R.id.likeCountTV);
             imageView = itemView.findViewById(R.id.imageView);
             likeBtn = itemView.findViewById(R.id.likeBtn);
             shareBtn = itemView.findViewById(R.id.shareBtn);
             bookmarkBtn = itemView.findViewById(R.id.bookmarkBtn);
+            descriptionTV = itemView.findViewById(R.id.descriptionTV);
+
         }
     }
 }

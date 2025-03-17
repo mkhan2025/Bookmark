@@ -122,7 +122,7 @@ public class Profile extends Fragment {
         //new addition
 
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         loadPostImages();
         recyclerView.setAdapter(adapter);
         editProfileBtn.setOnClickListener(v -> {

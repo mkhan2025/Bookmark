@@ -3,6 +3,8 @@ package com.example.bookmark.fragments;
 import static android.app.Activity.RESULT_OK;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import static com.example.bookmark.fragments.Home.LIST_SIZE;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -66,6 +68,7 @@ public class Profile extends Fragment {
     private Button followBtn;
     private RecyclerView recyclerView;
     private LinearLayout countLayout;
+
 
     private FirebaseUser user;
     boolean isMyProfile = true;
@@ -183,6 +186,7 @@ public class Profile extends Fragment {
                 }
             }
         });
+        postCountTV.setText(""+ LIST_SIZE);
     }
 
 

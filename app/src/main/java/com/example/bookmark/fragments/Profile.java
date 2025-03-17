@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +38,9 @@ import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
 import com.example.bookmark.R;
 import com.example.bookmark.adapter.PagerAdapter;
+import com.example.bookmark.model.PostImageModel;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -48,6 +52,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -75,6 +80,7 @@ public class Profile extends Fragment {
     private ImageButton editProfileBtn;
     String uid;
     private Uri imageUri;
+    FirestoreRecyclerAdapter adapter;
 
     public Profile() {
         // Required empty public constructor
@@ -117,7 +123,8 @@ public class Profile extends Fragment {
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        loadPostImages();
+        recyclerView.setAdapter(adapter);
         editProfileBtn.setOnClickListener(v -> {
             CropImageOptions options = new CropImageOptions();
             options.guidelines = CropImageView.Guidelines.ON;
@@ -229,5 +236,60 @@ public class Profile extends Fragment {
                         }
                     }
                 });
+    }
+    private void loadPostImages(){
+        if (isMyProfile)
+        {
+            uid = user.getUid();
+        }
+        else {
+
+        }
+        DocumentReference reference = FirebaseFirestore.getInstance().collection("Users").document(uid);
+
+        Query query = reference.collection("Post Images");
+        FirestoreRecyclerOptions<PostImageModel> options = new FirestoreRecyclerOptions.Builder<PostImageModel>()
+                .setQuery(query, PostImageModel.class)
+                .build();
+        adapter = new FirestoreRecyclerAdapter<PostImageModel, PostImageHolder>(options) {
+            @NonNull
+            @Override
+            public PostImageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.image_items, parent, false);
+                return new PostImageHolder(view);
+            }
+
+            @Override
+            public void onBindViewHolder(PostImageHolder holder, int position, PostImageModel model) {
+                Glide.with(holder.itemView.getContext().getApplicationContext())
+                        .load(model.getImageUrl())
+                        .timeout(6500)
+                        .into(holder.imageView);
+
+            }
+        };
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        adapter.startListening();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        adapter.stopListening();
+    }
+    private static class PostImageHolder extends RecyclerView.ViewHolder {
+
+        ImageView imageView;
+
+        public PostImageHolder(@NonNull View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.imageView);
+
+        }
+
     }
 }

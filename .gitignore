@@ -14,3 +14,4 @@
 .cxx
 local.properties
 rm 'app/google-services.json'
+local.properties

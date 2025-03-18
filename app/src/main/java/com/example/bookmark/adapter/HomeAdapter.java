@@ -44,7 +44,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull HomeHolder holder, int position) {
-        holder.usernameTV.setText(list.get(position).getUsername());
+        holder.usernameTV.setText(list.get(position).getName());
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
         Glide.with(context.getApplicationContext())
@@ -53,15 +53,16 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                 .timeout(7000)
                 .into(holder.imageView);
 
-        int likeCount = list.get(position).getLikeCount();
-        if (likeCount == 0) {
-            holder.likeCountTV.setVisibility(View.INVISIBLE);
-        } else if (likeCount == 1) {
-            holder.likeCountTV.setText(likeCount + " Like");
-        } else {
-            holder.likeCountTV.setText(likeCount + " Likes");
-        }
+//        int likeCount = list.get(position).getLikeCount();
+//        if (likeCount == 0) {
+//            holder.likeCountTV.setVisibility(View.INVISIBLE);
+//        } else if (likeCount == 1) {
+//            holder.likeCountTV.setText(likeCount + " Like");
+//        } else {
+//            holder.likeCountTV.setText(likeCount + " Likes");
+//        }
         holder.descriptionTV.setText(list.get(position).getDescription());
+        holder.locationTV.setText(list.get(position).getLocationName());
 
     }
 
@@ -73,6 +74,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     static class HomeHolder extends RecyclerView.ViewHolder {
         private CircleImageView profilePic;
         private TextView usernameTV;
+        private TextView locationTV;
+
 //        private TextView timeTV;
 
         private TextView likeCountTV;
@@ -95,6 +98,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             shareBtn = itemView.findViewById(R.id.shareBtn);
             bookmarkBtn = itemView.findViewById(R.id.bookmarkBtn);
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
+            locationTV = itemView.findViewById(R.id.locationTV);
+
 
         }
     }

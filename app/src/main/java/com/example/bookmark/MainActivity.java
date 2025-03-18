@@ -16,6 +16,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.bookmark.adapter.PagerAdapter;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         init();
+        String apiKey = getString(R.string.google_maps_key);
+        Places.initialize(getApplicationContext(), apiKey);
+        PlacesClient placesClient = Places.createClient(this);
         addTabs();
     }
     private void init(){

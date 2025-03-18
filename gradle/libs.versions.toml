@@ -19,6 +19,7 @@ firebaseAuth = "23.2.0"
 firebaseFirestore = "25.1.2"
 firebaseStorage = "21.0.1"
 cardview = "1.0.0"
+places = "4.1.0"
 playServicesMaps = "19.1.0"
 recyclerview = "1.4.0"
 googleMaps = "17.0.0"
@@ -46,6 +47,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+places = { module = "com.google.android.libraries.places:places", version.ref = "places" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 

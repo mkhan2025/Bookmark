@@ -36,9 +36,15 @@ import com.example.bookmark.R;
 import com.example.bookmark.adapter.GalleryAdapter;
 import com.example.bookmark.model.Galleryimages;
 import com.example.bookmark.model.PostImageModel;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -54,6 +60,7 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +77,10 @@ public class Add extends Fragment {
     private FirebaseUser user;
     private Uri imageUri; // Store selected image
     Dialog dialog;
+    private Place selectedPlace;  // Stores the selected place from AutocompleteSupportFragment
+
+    //autocomplete widget prediction
+    AutocompleteSupportFragment autocompleteFragment;
 
     public Add() {
         // Required empty public constructor
@@ -98,6 +109,7 @@ public class Add extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("FirestoreTest", "Firestore instance: " + FirebaseFirestore.getInstance());
         init(view);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
@@ -162,11 +174,18 @@ public class Add extends Fragment {
         map.put("id", id);
         map.put("imageUrl", imageURL);
         map.put("description", description);
-        map.put("username", user.getDisplayName());
-        map.put("profileImage", String.valueOf(user.getPhotoUrl()));
-        map.put("likeCount", 0);
-        map.put("comment", "");
-        map.put("uid", user.getUid());
+
+//         Commented out for now as you were not uploading user details like username
+         map.put("username", user.getDisplayName());
+         map.put("profileImage", String.valueOf(user.getPhotoUrl()));
+         map.put("likeCount", 0);
+         map.put("comment", "");
+         map.put("uid", user.getUid());
+
+        if (selectedPlace != null) {
+            map.put("placeId", selectedPlace.getId());
+            map.put("locationName", selectedPlace.getName());
+        }
 
         reference.document(id).set(map)
                 .addOnCompleteListener(task -> {
@@ -181,6 +200,7 @@ public class Add extends Fragment {
                     }
                     dialog.dismiss();
                 });
+        Log.d("FirestoreTest", "Upload complete.");
     }
 
     private void requestPermissionsAndLoadGallery() {
@@ -232,8 +252,26 @@ public class Add extends Fragment {
         dialog.setContentView(R.layout.loading_dialog);
         dialog.getWindow().setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(),R.drawable.dialog_bg, null));
         dialog.setCancelable(false);
+        autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setLocationBias(RectangularBounds.newInstance(new LatLng(39.64379259389463, -86.8643773763308), new LatLng(40.7128, 74.0060)));
+        autocompleteFragment.setCountries("US");
+        //specify the types of place data to return
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                selectedPlace = place;  // <-- Now we are setting it here
+                Log.d("Autocomplete", "Selected Place: " + place.getName() + ", ID: " + place.getId());
+                Toast.makeText(getContext(), "Selected Place: " + place.getName(), Toast.LENGTH_SHORT).show();
+            }
 
-
+            @Override
+            public void onError(@NonNull Status status) {
+                Log.e("Autocomplete", "Error: " + status);
+                Toast.makeText(getContext(), "Error: " + status, Toast.LENGTH_SHORT).show();
+            }
+        });
         img.setVisibility(View.VISIBLE);
         next.setVisibility(View.GONE);
     }

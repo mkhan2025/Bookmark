@@ -35,6 +35,14 @@
             android:textColor="@color/colorBlack"
             android:id="@+id/timeTV"
             />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="location"
+            android:textColor="@color/colorBlack"
+            android:id="@+id/locationTV"
+            android:layout_below = "@id/timeTV"
+            />
     </LinearLayout>
     <ImageView
         android:layout_width="match_parent"

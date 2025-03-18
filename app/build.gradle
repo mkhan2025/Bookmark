@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.android.image.cropper)
     implementation libs.dexter
     implementation libs.firebase.ui.firestore
+    implementation(libs.places)
+
 
 
 }

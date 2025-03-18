@@ -36,10 +36,18 @@
             android:background="@drawable/forward"
             />
     </RelativeLayout>
+    <fragment
+        android:id = "@+id/autocomplete_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout"
+        android:clickable="true"
+        android:focusable="true"
+        android:name = "com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/layout">
+        android:layout_below="@id/autocomplete_fragment">
 
         <RelativeLayout
         android:layout_width="match_parent"

@@ -128,7 +128,7 @@ public class Home extends Fragment {
                     return;
                 }
                 HomeModel model = snapshot.toObject(HomeModel.class);
-                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getUsername(), model.getComment(), model.getDescription(), model.getId(), model.getLikeCount(), model.getLocalPostImage()));
+                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(), model.getLocalPostImage()));
             }
             LIST_SIZE = list.size();
             adapter.notifyDataSetChanged();

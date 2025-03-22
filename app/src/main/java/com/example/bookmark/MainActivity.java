@@ -45,9 +45,10 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         init();
-        String apiKey = getString(R.string.google_maps_key);
-        Places.initialize(getApplicationContext(), apiKey);
-        PlacesClient placesClient = Places.createClient(this);
+//
+//        String apiKey = getString(R.string.google_maps_key);
+//        Places.initialize(getApplicationContext(), apiKey);
+//        PlacesClient placesClient = Places.createClient(this);
         addTabs();
     }
     private void init(){

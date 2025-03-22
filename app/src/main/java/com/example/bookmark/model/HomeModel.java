@@ -1,7 +1,7 @@
 package com.example.bookmark.model;
 
 public class HomeModel {
-    private String uid, profileImage, imageUrl, name, comment, description, id, locationName;
+    private String uid, profileImage, imageUrl, name, comment, description, id, locationName, activityType;
     //    private String timeStamp;
 //    private int likeCount;
     private int localPostImage;
@@ -9,7 +9,7 @@ public class HomeModel {
     public HomeModel() {
     }
 
-    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, int localPostImage) {
+    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage) {
         this.uid = uid;
         this.profileImage = profileImage;
         this.imageUrl = imageUrl;
@@ -18,6 +18,7 @@ public class HomeModel {
         this.description = description;
         this.id = id;
         this.locationName = locationName;
+        this.activityType = activityType;
         this.localPostImage = localPostImage;
     }
 
@@ -83,6 +84,14 @@ public class HomeModel {
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
+    }
+
+    public String getActivityType() {
+        return activityType;
+    }
+
+    public void setActivityType(String activityType) {
+        this.activityType = activityType;
     }
 
     public int getLocalPostImage() {

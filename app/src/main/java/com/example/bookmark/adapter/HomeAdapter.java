@@ -45,6 +45,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     @Override
     public void onBindViewHolder(@NonNull HomeHolder holder, int position) {
         holder.usernameTV.setText(list.get(position).getName());
+        Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
         Glide.with(context.getApplicationContext())
@@ -63,6 +64,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 //        }
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
+        holder.activityTypeTV.setText(list.get(position).getActivityType());
 
     }
 
@@ -80,6 +82,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 
         private TextView likeCountTV;
         private TextView descriptionTV;
+        private TextView activityTypeTV;
         private ImageView imageView;
         private ImageButton likeBtn;
         private ImageButton commentBtn;
@@ -99,6 +102,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             bookmarkBtn = itemView.findViewById(R.id.bookmarkBtn);
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
             locationTV = itemView.findViewById(R.id.locationTV);
+            activityTypeTV = itemView.findViewById(R.id.activityTV);
 
 
         }

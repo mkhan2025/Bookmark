@@ -36,6 +36,14 @@
             android:background="@drawable/forward"
             />
     </RelativeLayout>
+    <LinearLayout
+        android:layout_below="@id/layout"
+        android:id="@+id/search__layout"
+        android:focusableInTouchMode="true"
+        android:descendantFocusability="afterDescendants"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
     <fragment
         android:id = "@+id/autocomplete_fragment"
         android:layout_width="match_parent"
@@ -44,10 +52,24 @@
         android:clickable="true"
         android:focusable="true"
         android:name = "com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:hint="Select Item">
+        <AutoCompleteTextView
+            android:id = "@+id/autocomplete_text"
+            android:layout_below="@id/autocomplete_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            style = "@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" />
+    </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/autocomplete_fragment">
+        android:layout_below="@id/search__layout">
 
         <RelativeLayout
         android:layout_width="match_parent"

@@ -34,6 +34,7 @@
             android:text="2h"
             android:textColor="@color/colorBlack"
             android:id="@+id/timeTV"
+            android:visibility="gone"
             />
         <TextView
             android:layout_width="match_parent"
@@ -42,6 +43,14 @@
             android:textColor="@color/colorBlack"
             android:id="@+id/locationTV"
             android:layout_below = "@id/timeTV"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="activity"
+            android:textColor="@color/colorBlack"
+            android:id="@+id/activityTV"
+            android:layout_below = "@id/locationTV"
             />
     </LinearLayout>
     <ImageView

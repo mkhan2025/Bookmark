@@ -5,6 +5,7 @@ circleimageview = "3.1.0"
 credentials = "1.3.0"
 dexter = "6.2.3"
 firebaseBom = "33.9.0"
+firebaseBomVersion = "33.10.0"
 firebaseUiFirestore = "8.0.2"
 glide = "4.16.0"
 googleid = "1.1.1"
@@ -20,6 +21,7 @@ firebaseFirestore = "25.1.2"
 firebaseStorage = "21.0.1"
 cardview = "1.0.0"
 places = "4.1.0"
+placesVersion = "4.2.0"
 playServicesMaps = "19.1.0"
 recyclerview = "1.4.0"
 googleMaps = "17.0.0"
@@ -33,6 +35,7 @@ credentials-play-services-auth = { module = "androidx.credentials:credentials-pl
 dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-bom-v33100 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 firebase-ui-firestore = { module = "com.firebaseui:firebase-ui-firestore", version.ref = "firebaseUiFirestore" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
@@ -48,6 +51,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 places = { module = "com.google.android.libraries.places:places", version.ref = "places" }
+places-v420 = { module = "com.google.android.libraries.places:places", version.ref = "placesVersion" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 

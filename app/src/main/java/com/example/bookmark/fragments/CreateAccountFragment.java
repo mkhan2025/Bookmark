@@ -83,10 +83,15 @@ public class CreateAccountFragment extends Fragment {
         signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String name = nameET.getText().toString();
-                String email = emailET.getText().toString();
-                String password = passwordET.getText().toString();
-                String confirmPass = confirmPassET.getText().toString();
+
+//                String name = nameET.getText().toString();
+//                String email = emailET.getText().toString();
+//                String password = passwordET.getText().toString();
+//                String confirmPass = confirmPassET.getText().toString();
+                String name = "abc";
+                String email = "omer@gmail.com";
+                String password = "aaaaaa";
+                String confirmPass = "aaaaaa";
 
                 if (name.isEmpty() || name.equals(""))
                 {

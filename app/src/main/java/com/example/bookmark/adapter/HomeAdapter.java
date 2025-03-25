@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.helper.widget.Layer;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.bookmark.R;
 import com.example.bookmark.model.HomeModel;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 import java.util.Random;
@@ -44,6 +46,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull HomeHolder holder, int position) {
+        int likeCount = list.get(position).getLikeCount();
+        holder.likeCountTV.setText(likeCount + " Likes");
         holder.usernameTV.setText(list.get(position).getName());
         Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
@@ -62,6 +66,23 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 //        } else {
 //            holder.likeCountTV.setText(likeCount + " Likes");
 //        }
+        holder.likeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                HomeModel post = list.get(position);
+                int currLikes = post.getLikeCount();
+                int newLikes = currLikes + 1;
+                FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
+                            // Update the UI
+                            post.setLikeCount(newLikes);
+                            holder.likeCountTV.setText(newLikes + " Likes");
+                            holder.likeCountTV.setVisibility(View.VISIBLE);
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Failed to update likes", Toast.LENGTH_SHORT).show();
+                        });
+            }
+        });
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.activityTypeTV.setText(list.get(position).getActivityType());

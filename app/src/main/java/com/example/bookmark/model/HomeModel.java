@@ -3,13 +3,13 @@ package com.example.bookmark.model;
 public class HomeModel {
     private String uid, profileImage, imageUrl, name, comment, description, id, locationName, activityType;
     //    private String timeStamp;
-//    private int likeCount;
+    private int likeCount;
     private int localPostImage;
 
     public HomeModel() {
     }
 
-    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage) {
+    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage, int likeCount) {
         this.uid = uid;
         this.profileImage = profileImage;
         this.imageUrl = imageUrl;
@@ -20,6 +20,15 @@ public class HomeModel {
         this.locationName = locationName;
         this.activityType = activityType;
         this.localPostImage = localPostImage;
+        this.likeCount = likeCount;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
 
     public String getUid() {

@@ -70,8 +70,12 @@ public class Home extends Fragment {
         adapter = new HomeAdapter(list, getActivity());
         recyclerView.setAdapter(adapter);
         loadDataFromFirestore();
+        clickListener();
 
         //
+
+    }
+    private void clickListener(){
 
     }
     private void init(View view){
@@ -129,7 +133,7 @@ public class Home extends Fragment {
                 }
                 HomeModel model = snapshot.toObject(HomeModel.class);
                 Log.d("HomeFragment", "Post name: " + model.getName());
-                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage()));
+                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage(), model.getLikeCount()));
             }
             LIST_SIZE = list.size();
             adapter.notifyDataSetChanged();

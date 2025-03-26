@@ -9,6 +9,7 @@ public class HomeModel {
     private int likeCount;
     private int localPostImage;
     private List<String> likedBy = new ArrayList<>();
+    private List<CommentModel> comments = new ArrayList<>();
 
     public HomeModel() {
     }

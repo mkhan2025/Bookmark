@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,13 +15,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.helper.widget.Layer;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.bookmark.R;
+import com.example.bookmark.model.CommentModel;
 import com.example.bookmark.model.HomeModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -30,7 +38,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     private List<HomeModel> list;
     Context context;
 
-    Random random = new Random();
 
     public HomeAdapter(List<HomeModel> list, Context context) {
         this.list = list;
@@ -58,14 +65,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                 .timeout(7000)
                 .into(holder.imageView);
 
-//        int likeCount = list.get(position).getLikeCount();
-//        if (likeCount == 0) {
-//            holder.likeCountTV.setVisibility(View.INVISIBLE);
-//        } else if (likeCount == 1) {
-//            holder.likeCountTV.setText(likeCount + " Like");
-//        } else {
-//            holder.likeCountTV.setText(likeCount + " Likes");
-//        }
         holder.likeBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -108,6 +107,116 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             
             }
         });
+                holder.commentBtn.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
+        View view = LayoutInflater.from(context).inflate(R.layout.comment, null);
+        
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerView); 
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        EditText commentEditText = view.findViewById(R.id.commentET);
+        ImageButton sendBtn = view.findViewById(R.id.sendBtn);
+        CommentAdapter commentAdapter = new CommentAdapter(new ArrayList<>(), context);
+        recyclerView.setAdapter(commentAdapter);
+        HomeModel post = list.get(position);
+
+        // Set up real-time listener HERE
+        FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(post.getUid())
+            .collection("Post Images")
+            .document(post.getId())
+            .collection("Comments")
+            .addSnapshotListener((value, error) -> {
+                if (error != null) {
+                    Log.e("CommentListener", "Error loading comments", error);
+                    Toast.makeText(context, "Error loading comments", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                   if (value == null) {
+                Log.d("CommentListener", "No comments found");
+                return;
+                }
+                
+                List<CommentModel> comments = new ArrayList<>();
+                for (DocumentSnapshot doc : value.getDocuments()) {
+                    CommentModel comment = doc.toObject(CommentModel.class);
+                    Log.d("CommentListener", "Comment loaded: " + comment.getComment() + " by " + comment.getUsername());
+                    comments.add(comment);
+                }
+
+                // Update CommentAdapter with new comments
+                Log.d("CommentListener", "Total comments: " + comments.size());
+                commentAdapter.updateComments(comments);
+            });
+
+sendBtn.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        String commentText = commentEditText.getText().toString().trim();
+        if(!commentText.isEmpty()){
+            String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            
+            // First get the username from Users collection
+            FirebaseFirestore.getInstance()
+                .collection("Users")
+                .document(currentUserId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Add logging to see what fields are available
+                    Log.d("UserData", "User document fields: " + documentSnapshot.getData());
+                    
+                    // Create a final variable for username
+                    final String finalUsername;
+                    
+                    // Try different possible field names for username
+                    String username = documentSnapshot.getString("name");
+                    // if (username == null) {
+                    //     username = documentSnapshot.getString("name");
+                    // }
+                    // if (username == null) {
+                    //     username = documentSnapshot.getString("userName");
+                    // }
+                    
+                    finalUsername = username != null ? username : "Unknown User";
+                    Log.d("UserData", "Found username: " + finalUsername);
+                    
+                    CommentModel comment = new CommentModel();
+                    comment.setComment(commentText);
+                    comment.setUid(currentUserId);
+                    comment.setUsername(finalUsername);
+                    comment.setProfileImage(documentSnapshot.getString("profileImage"));
+                    comment.setTimestamp(new Date(System.currentTimeMillis()));
+
+                    FirebaseFirestore.getInstance()
+                        .collection("Users")
+                        .document(post.getUid())
+                        .collection("Post Images")
+                        .document(post.getId())
+                        .collection("Comments")
+                        .add(comment)
+                        .addOnSuccessListener(documentReference -> {
+                            Log.d("CommentSuccess", "Comment added with username: " + finalUsername);
+                            commentEditText.setText("");
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("CommentError", "Failed to add comment", e);
+                            Toast.makeText(context, "Failed to post comment", Toast.LENGTH_SHORT).show();
+                        });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserData", "Failed to get user data", e);
+                    Toast.makeText(context, "Failed to get user data", Toast.LENGTH_SHORT).show();
+                });
+        }
+    }
+});
+        
+        bottomSheetDialog.setContentView(view);
+        bottomSheetDialog.show();
+    }
+});
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.activityTypeTV.setText(list.get(position).getActivityType());
@@ -149,6 +258,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             descriptionTV = itemView.findViewById(R.id.descriptionTV);
             locationTV = itemView.findViewById(R.id.locationTV);
             activityTypeTV = itemView.findViewById(R.id.activityTV);
+            commentBtn = itemView.findViewById(R.id.commentBtn);
 
 
         }

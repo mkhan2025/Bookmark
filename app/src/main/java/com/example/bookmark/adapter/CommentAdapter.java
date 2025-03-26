@@ -50,6 +50,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentH
     @Override
     public void onBindViewHolder(@NonNull CommentHolder holder, int position) {
         CommentModel comment = list.get(position);
+        Log.d("CommentAdapter", "Binding comment at position " + position + ": " + comment.getComment());
         holder.commentUsername.setText(comment.getUsername());
     if (comment.getTimestamp() != null) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());

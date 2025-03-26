@@ -112,13 +112,21 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     public void onClick(View v) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         View view = LayoutInflater.from(context).inflate(R.layout.comment, null);
+        view.setLayoutParams(new ViewGroup.LayoutParams(
+    ViewGroup.LayoutParams.MATCH_PARENT,
+    ViewGroup.LayoutParams.MATCH_PARENT
+));
         
         RecyclerView recyclerView = view.findViewById(R.id.recyclerView); 
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setHasFixedSize(true);
         EditText commentEditText = view.findViewById(R.id.commentET);
         ImageButton sendBtn = view.findViewById(R.id.sendBtn);
         CommentAdapter commentAdapter = new CommentAdapter(new ArrayList<>(), context);
         recyclerView.setAdapter(commentAdapter);
+        ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
+        params.height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.7); // 70% of screen height
+        recyclerView.setLayoutParams(params);
         HomeModel post = list.get(position);
 
         // Set up real-time listener HERE
@@ -150,6 +158,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                 Log.d("CommentListener", "Total comments: " + comments.size());
                 commentAdapter.updateComments(comments);
             });
+        bottomSheetDialog.setContentView(view);
+        bottomSheetDialog.show();
 
 sendBtn.setOnClickListener(new View.OnClickListener() {
     @Override
@@ -213,8 +223,7 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
     }
 });
         
-        bottomSheetDialog.setContentView(view);
-        bottomSheetDialog.show();
+ 
     }
 });
         holder.descriptionTV.setText(list.get(position).getDescription());

@@ -67,11 +67,34 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
 //            holder.likeCountTV.setText(likeCount + " Likes");
 //        }
         holder.likeBtn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+                Log.d("Like","liked by button clicked");
+        
+                String uid = list.get(position).getUid();
                 HomeModel post = list.get(position);
                 int currLikes = post.getLikeCount();
+                if(post.getLikedBy().contains(uid))
+                {
+                    holder.likeBtn.setImageResource(R.drawable.heart);
+                    int newLikes = currLikes - 1; 
+                    post.getLikedBy().remove(uid);
+                    FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
+                            // Update the UI
+                            post.setLikeCount(newLikes);
+                            holder.likeCountTV.setText(newLikes + " Likes");
+                            holder.likeCountTV.setVisibility(View.VISIBLE);
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Failed to unlike", Toast.LENGTH_SHORT).show();
+                        });
+                    Log.d("Like","liked by finished");
+                }
+                else{
+                holder.likeBtn.setImageResource(R.drawable.heart_fill);
                 int newLikes = currLikes + 1;
+                post.getLikedBy().add(uid);
                 FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
                             // Update the UI
                             post.setLikeCount(newLikes);
@@ -81,6 +104,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                         .addOnFailureListener(e -> {
                             Toast.makeText(context, "Failed to update likes", Toast.LENGTH_SHORT).show();
                         });
+                }
+            
             }
         });
         holder.descriptionTV.setText(list.get(position).getDescription());

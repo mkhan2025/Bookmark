@@ -76,6 +76,7 @@ public class Home extends Fragment {
 
     }
     private void clickListener(){
+        
 
     }
     private void init(View view){
@@ -133,7 +134,7 @@ public class Home extends Fragment {
                 }
                 HomeModel model = snapshot.toObject(HomeModel.class);
                 Log.d("HomeFragment", "Post name: " + model.getName());
-                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage(), model.getLikeCount()));
+                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage(), model.getLikeCount(), model.getLikedBy()));
             }
             LIST_SIZE = list.size();
             adapter.notifyDataSetChanged();

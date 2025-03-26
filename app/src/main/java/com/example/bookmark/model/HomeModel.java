@@ -1,15 +1,19 @@
 package com.example.bookmark.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HomeModel {
     private String uid, profileImage, imageUrl, name, comment, description, id, locationName, activityType;
     //    private String timeStamp;
     private int likeCount;
     private int localPostImage;
+    private List<String> likedBy = new ArrayList<>();
 
     public HomeModel() {
     }
 
-    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage, int likeCount) {
+    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage, int likeCount, List<String>likedBy) {
         this.uid = uid;
         this.profileImage = profileImage;
         this.imageUrl = imageUrl;
@@ -21,6 +25,12 @@ public class HomeModel {
         this.activityType = activityType;
         this.localPostImage = localPostImage;
         this.likeCount = likeCount;
+    }
+      public List<String> getLikedBy(){
+        return likedBy; 
+    }
+    public void setLikedBy(){
+        this.likedBy = likedBy; 
     }
 
     public int getLikeCount() {

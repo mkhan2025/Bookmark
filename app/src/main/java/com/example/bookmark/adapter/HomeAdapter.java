@@ -29,6 +29,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -229,96 +230,151 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
  
     }
 });
-//holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
-//    @Override
-//    public void onClick(View v) {
-//        Log.d("Bookmark", "Bookmark button clicked");
-//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-//        if(user == null){
-//            Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//        String postId = list.get(position).getId();
-//        DocumentReference bookmarkRef = FirebaseFirestore.getInstance().collection("Users").document(user.getUid()).collection("Bookmarks").document(postId);
-//        bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
-//            BookmarksModel bookmark = null;
-//            if (documentSnapshot.exists()) {
-//                bookmarkRef.delete().addOnSuccessListener(aVoid -> {
-//                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
-//                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
-//                }).addOnFailureListener(e -> {
-//                    Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show();
-//                });
-//            } else {
-//                bookmark = new BookmarksModel(postId, list.get(position).getUid(), new Date(System.currentTimeMillis()));
-//            }
-//            bookmarkRef.set(bookmark).addOnSuccessListener(aVoid -> {
-//                holder.bookmarkBtn.setImageResource(R.drawable.heart);
-//                Toast.makeText(context, "Bookmark added", Toast.LENGTH_SHORT).show();
-//            }).addOnFailureListener(e -> {
-//                Toast.makeText(context, "Failed to add bookmark", Toast.LENGTH_SHORT).show();
-//            });
-//
-//        });
-//
-//    }
-//});
+
+        // holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
+        //     @Override
+        //     public void onClick(View v) {
+        //         Log.d("Bookmark", "Bookmark button clicked");
+        //         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //         if(user == null){
+        //             Log.e("Bookmark", "User is null - not logged in");
+        //             Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
+        //             return;
+        //         }
+        //         Log.d("Bookmark", "Current user ID: " + user.getUid());
+
+        //         String postId = list.get(position).getId();
+        //         Log.d("Bookmark", "Post ID to bookmark: " + postId);
+        //         String originalUserId = list.get(position).getUid();  // Get the original post owner's ID
+
+        //         DocumentReference bookmarkRef = FirebaseFirestore.getInstance()
+        //                 .collection("Users")
+        //                 .document(user.getUid())
+        //                 .collection("Bookmarks")
+        //                 .document(postId);
+        // Log.d("Bookmark", "Checking if bookmark exists for path: Users/" + user.getUid() + "/Bookmarks/" + postId);
+
+        //         bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
+        //             if (documentSnapshot.exists()) {
+        //                 // Remove bookmark
+        //                 bookmarkRef.delete()
+        //                         .addOnSuccessListener(aVoid -> {
+        //                             holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+        //                             Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
+        //                         })
+        //                         .addOnFailureListener(e ->
+        //                                 Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show());
+        //             } else {
+        //                 // Add bookmark
+        //                 BookmarksModel bookmark = new BookmarksModel(
+        //                         originalUserId,  // original post owner's ID
+        //                         postId,         // post ID
+        //                         new Date(System.currentTimeMillis())  // current timestamp
+        //                 );
+
+        //                 bookmarkRef.set(bookmark)
+        //                         .addOnSuccessListener(aVoid -> {
+        //                             holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+        //                             Toast.makeText(context, "Post bookmarked", Toast.LENGTH_SHORT).show();
+        //                         })
+        //                         .addOnFailureListener(e ->
+        //                                 Toast.makeText(context, "Failed to bookmark", Toast.LENGTH_SHORT).show());
+        //             }
+        //         });
+        //     }
+        // });
         holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("Bookmark", "Bookmark button clicked");
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if(user == null){
-                    Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                String postId = list.get(position).getId();
-                String originalUserId = list.get(position).getUid();  // Get the original post owner's ID
+    @Override
+    public void onClick(View v) {
+        Log.d("Bookmark", "Bookmark button clicked");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user == null){
+            Log.e("Bookmark", "User is null - not logged in");
+            Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Log.d("Bookmark", "Current user ID: " + user.getUid());
 
-                DocumentReference bookmarkRef = FirebaseFirestore.getInstance()
-                        .collection("Users")
-                        .document(user.getUid())
-                        .collection("Bookmarks")
-                        .document(postId);
+        String postId = list.get(position).getId();
+        Log.d("Bookmark", "Post ID to bookmark: " + postId);
+        String originalUserId = list.get(position).getUid();  // Get the original post owner's ID
 
-                bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Remove bookmark
-                        bookmarkRef.delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
-                                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show());
-                    } else {
-                        // Add bookmark
-                        BookmarksModel bookmark = new BookmarksModel(
-                                originalUserId,  // original post owner's ID
-                                postId,         // post ID
-                                new Date(System.currentTimeMillis())  // current timestamp
-                        );
+        DocumentReference bookmarkRef = FirebaseFirestore.getInstance()
+                .collection("Users")
+                .document(user.getUid())
+                .collection("Bookmarks")
+                .document(postId);
 
-                        bookmarkRef.set(bookmark)
-                                .addOnSuccessListener(aVoid -> {
-                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
-                                    Toast.makeText(context, "Post bookmarked", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(context, "Failed to bookmark", Toast.LENGTH_SHORT).show());
-                    }
-                });
+        Log.d("Bookmark", "Checking if bookmark exists for path: Users/" + user.getUid() + "/Bookmarks/" + postId);
+
+        bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
+            Log.d("Bookmark", "Successfully checked bookmark status");
+            if (documentSnapshot.exists()) {
+                Log.d("Bookmark", "Bookmark exists, removing it");
+                // Remove bookmark
+                bookmarkRef.delete()
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Bookmark", "Successfully removed bookmark");
+                        holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+                        Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Bookmark", "Failed to remove bookmark", e);
+                        Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show();
+                    });
+            } else {
+                Log.d("Bookmark", "Bookmark doesn't exist, adding it");
+                // Add bookmark
+                BookmarksModel bookmark = new BookmarksModel();
+                bookmark.setBookmarkedPostId(postId);
+                bookmark.setOriginalUserId(user.getUid());
+                bookmark.setOriginalUserId(originalUserId);  // Store the original post owner's ID
+                bookmark.setTimestamp(new Date(System.currentTimeMillis()));
+
+                Log.d("Bookmark", "Creating new bookmark with data: " + 
+                    "postId=" + bookmark.getBookmarkedPostId() +
+                    ", userId=" + bookmark.getOriginalUserId() +
+                    ", originalUserId=" + bookmark.getOriginalUserId() + 
+                    ", timestamp=" + bookmark.getTimestamp());
+
+                bookmarkRef.set(bookmark)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Bookmark", "Successfully added bookmark");
+                        holder.bookmarkBtn.setImageResource(R.drawable.bookmark_outline);
+                        Toast.makeText(context, "Bookmarked", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Bookmark", "Failed to add bookmark", e);
+                        Toast.makeText(context, "Failed to bookmark", Toast.LENGTH_SHORT).show();
+                    });
             }
+        })
+        .addOnFailureListener(e -> {
+            Log.e("Bookmark", "Failed to check bookmark status", e);
+            Toast.makeText(context, "Error checking bookmark status", Toast.LENGTH_SHORT).show();
         });
+    }
+});
+
+
+
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.activityTypeTV.setText(list.get(position).getActivityType());
 
     }
-    private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
-    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    if (user == null) return;
 
+    private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
+    Log.d("Bookmark", "Checking bookmark status for post: " + postId);
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    if (user == null) {
+        Log.e("Bookmark", "User is null in checkBookmarkStatus");
+        bookmarkBtn.setImageResource(R.drawable.bookmark);
+        return;
+    }
+    Log.d("Bookmark", "Current user ID in checkBookmarkStatus: " + user.getUid());
+
+    // Use get() instead of addSnapshotListener for one-time check
     FirebaseFirestore.getInstance()
         .collection("Users")
         .document(user.getUid())
@@ -326,11 +382,76 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         .document(postId)
         .get()
         .addOnSuccessListener(documentSnapshot -> {
-            boolean isBookmarked = documentSnapshot.exists();
-            bookmarkBtn.setImageResource(isBookmarked ? 
-                R.drawable.heart : R.drawable.bookmark);
+            Log.d("Bookmark", "Successfully checked bookmark status");
+            if (documentSnapshot.exists()) {
+                Log.d("Bookmark", "Bookmark exists, setting filled icon");
+                bookmarkBtn.setImageResource(R.drawable.bookmark_outline);
+            } else {
+                Log.d("Bookmark", "Bookmark doesn't exist, setting unfilled icon");
+                bookmarkBtn.setImageResource(R.drawable.bookmark);
+            }
+        })
+        .addOnFailureListener(e -> {
+            Log.e("Bookmark", "Failed to check bookmark status", e);
+            // Handle offline state
+            if (e instanceof FirebaseFirestoreException) {
+                FirebaseFirestoreException firestoreException = (FirebaseFirestoreException) e;
+                if (firestoreException.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+                    Toast.makeText(context, "You're offline. Please check your internet connection.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            bookmarkBtn.setImageResource(R.drawable.bookmark);
         });
 }
+
+//     private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
+//     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//     if (user == null) return;
+
+//     FirebaseFirestore.getInstance()
+//         .collection("Users")
+//         .document(user.getUid())
+//         .collection("Bookmarks")
+//         .document(postId)
+//         .get()
+//         .addOnSuccessListener(documentSnapshot -> {
+//             boolean isBookmarked = documentSnapshot.exists();
+//             bookmarkBtn.setImageResource(isBookmarked ? 
+//                 R.drawable.heart : R.drawable.bookmark);
+//         });
+// }
+
+// private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
+//     Log.d("Bookmark", "Checking bookmark status for post: " + postId);
+//     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//     if (user == null) {
+//         Log.e("Bookmark", "User is null in checkBookmarkStatus");
+//         bookmarkBtn.setImageResource(R.drawable.bookmark);
+//         return;
+//     }
+//     Log.d("Bookmark", "Current user ID in checkBookmarkStatus: " + user.getUid());
+
+//     FirebaseFirestore.getInstance()
+//         .collection("Users")
+//         .document(user.getUid())
+//         .collection("Bookmarks")
+//         .document(postId)
+//         .get()
+//         .addOnSuccessListener(documentSnapshot -> {
+//             Log.d("Bookmark", "Successfully checked bookmark status in checkBookmarkStatus");
+//             if (documentSnapshot.exists()) {
+//                 Log.d("Bookmark", "Bookmark exists, setting filled icon");
+//                 bookmarkBtn.setImageResource(R.drawable.bookmark);
+//             } else {
+//                 Log.d("Bookmark", "Bookmark doesn't exist, setting unfilled icon");
+//                 bookmarkBtn.setImageResource(R.drawable.bookmark);
+//             }
+//         })
+//         .addOnFailureListener(e -> {
+//             Log.e("Bookmark", "Error checking bookmark status in checkBookmarkStatus", e);
+//             bookmarkBtn.setImageResource(R.drawable.bookmark);
+//         });
+// }
 
     @Override
     public int getItemCount() {

@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.home));
-        tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.search));
+        tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.bookmark));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.add));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.heart));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.test));
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
-        tabLayout.getTabAt(1).setIcon(R.drawable.search);
+        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
         tabLayout.getTabAt(2).setIcon(R.drawable.add);
         tabLayout.getTabAt(3).setIcon(R.drawable.heart);
         tabLayout.getTabAt(4).setIcon(R.drawable.profile_outline);
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
                         break;
                     case 1:
-                        tabLayout.getTabAt(1).setIcon(R.drawable.search);
+                        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
                         break;
                     case 2:
                         tabLayout.getTabAt(2).setIcon(R.drawable.add);
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(0).setIcon(R.drawable.home);
                         break;
                     case 1:
-                        tabLayout.getTabAt(1).setIcon(R.drawable.search);
+                        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
                         break;
                     case 2:
                         tabLayout.getTabAt(2).setIcon(R.drawable.add);
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
                         break;
                     case 1:
-                        tabLayout.getTabAt(1).setIcon(R.drawable.search);
+                        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
                         break;
                     case 2:
                         tabLayout.getTabAt(2).setIcon(R.drawable.add);

@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.example.bookmark.fragments.Add;
+import com.example.bookmark.fragments.BookmarksFragment;
 import com.example.bookmark.fragments.Home;
 import com.example.bookmark.fragments.MapsFragment;
 import com.example.bookmark.fragments.Notification;
@@ -42,7 +43,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
             case 0:
                 return new Home();
             case 1:
-                return new Search();
+                return new BookmarksFragment();
             case 2:
                 return new Add();
             case 3:

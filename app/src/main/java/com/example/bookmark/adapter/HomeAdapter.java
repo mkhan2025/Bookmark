@@ -20,17 +20,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.bookmark.R;
+import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.CommentModel;
 import com.example.bookmark.model.HomeModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -57,6 +59,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         holder.likeCountTV.setText(likeCount + " Likes");
         holder.usernameTV.setText(list.get(position).getName());
         Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
+        checkBookmarkStatus(list.get(position).getId(), holder.bookmarkBtn);
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
         Glide.with(context.getApplicationContext())
@@ -226,11 +229,108 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
  
     }
 });
+//holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
+//    @Override
+//    public void onClick(View v) {
+//        Log.d("Bookmark", "Bookmark button clicked");
+//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//        if(user == null){
+//            Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//        String postId = list.get(position).getId();
+//        DocumentReference bookmarkRef = FirebaseFirestore.getInstance().collection("Users").document(user.getUid()).collection("Bookmarks").document(postId);
+//        bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
+//            BookmarksModel bookmark = null;
+//            if (documentSnapshot.exists()) {
+//                bookmarkRef.delete().addOnSuccessListener(aVoid -> {
+//                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+//                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
+//                }).addOnFailureListener(e -> {
+//                    Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show();
+//                });
+//            } else {
+//                bookmark = new BookmarksModel(postId, list.get(position).getUid(), new Date(System.currentTimeMillis()));
+//            }
+//            bookmarkRef.set(bookmark).addOnSuccessListener(aVoid -> {
+//                holder.bookmarkBtn.setImageResource(R.drawable.heart);
+//                Toast.makeText(context, "Bookmark added", Toast.LENGTH_SHORT).show();
+//            }).addOnFailureListener(e -> {
+//                Toast.makeText(context, "Failed to add bookmark", Toast.LENGTH_SHORT).show();
+//            });
+//
+//        });
+//
+//    }
+//});
+        holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("Bookmark", "Bookmark button clicked");
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if(user == null){
+                    Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String postId = list.get(position).getId();
+                String originalUserId = list.get(position).getUid();  // Get the original post owner's ID
+
+                DocumentReference bookmarkRef = FirebaseFirestore.getInstance()
+                        .collection("Users")
+                        .document(user.getUid())
+                        .collection("Bookmarks")
+                        .document(postId);
+
+                bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Remove bookmark
+                        bookmarkRef.delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+                                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show());
+                    } else {
+                        // Add bookmark
+                        BookmarksModel bookmark = new BookmarksModel(
+                                originalUserId,  // original post owner's ID
+                                postId,         // post ID
+                                new Date(System.currentTimeMillis())  // current timestamp
+                        );
+
+                        bookmarkRef.set(bookmark)
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+                                    Toast.makeText(context, "Post bookmarked", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(context, "Failed to bookmark", Toast.LENGTH_SHORT).show());
+                    }
+                });
+            }
+        });
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.activityTypeTV.setText(list.get(position).getActivityType());
 
     }
+    private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    if (user == null) return;
+
+    FirebaseFirestore.getInstance()
+        .collection("Users")
+        .document(user.getUid())
+        .collection("Bookmarks")
+        .document(postId)
+        .get()
+        .addOnSuccessListener(documentSnapshot -> {
+            boolean isBookmarked = documentSnapshot.exists();
+            bookmarkBtn.setImageResource(isBookmarked ? 
+                R.drawable.heart : R.drawable.bookmark);
+        });
+}
 
     @Override
     public int getItemCount() {

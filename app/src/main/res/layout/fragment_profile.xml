@@ -4,45 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.Profile">
+    >
 
-<!--    <androidx.appcompat.widget.Toolbar-->
-<!--        android:layout_alignParentTop="true"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="?attr/actionBarSize"-->
-<!--        android:id = "@+id/toolbar"-->
-<!--        android:background = "@color/colorPrimary"-->
-<!--        android:elevation = "2dp"-->
-<!--        app:contentInsetEnd="0dp"-->
-<!--        app:contentInsetStart="0dp"-->
-
-<!--        >-->
-
-<!--        <RelativeLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent">-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Username"-->
-<!--                android:id = "@+id/toolbarNameTV"-->
-<!--                android:textStyle="bold"-->
-<!--                android:layout_centerInParent="true"-->
-<!--                android:textSize="18sp"/>-->
-<!--            <ImageButton-->
-<!--                android:contentDescription="null"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_alignParentEnd="true"-->
-<!--                android:layout_centerVertical="true"-->
-<!--                android:background="@drawable/menu"-->
-<!--                android:layout_margin="8sp"-->
-<!--                android:id = "@+id/menuBtn"-->
-<!--                android:layout_alignParentRight="true"-->
-<!--                />-->
-
-<!--        </RelativeLayout>-->
-<!--    </androidx.appcompat.widget.Toolbar>-->
 
     <LinearLayout
         android:id = "@+id/linear_1"
@@ -72,6 +35,15 @@
             android:elevation="3dp"
             android:id="@+id/edit_profileImage"
             />
+
+    <ImageView
+        android:id="@+id/bookmarkBtn"
+        android:layout_width="24dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/bookmark"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </RelativeLayout>
         <LinearLayout
@@ -104,6 +76,7 @@
             android:layout_below = "@id/nameTV"
             android:id="@+id/bioTV"
             />
+
     </LinearLayout>
     </LinearLayout>
 <RelativeLayout

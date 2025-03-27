@@ -3,6 +3,7 @@ package com.example.bookmark.adapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryH
     public void onBindViewHolder(@NonNull GalleryHolder holder, int position) {
 //        holder.imageView.setImageURI(list.get(position).getPicUri());
 //        using Glide instead to load image
+        Log.d("GalleryAdapter", "Binding item at position: " + position);
+
         Glide.with(holder.itemView.getContext().getApplicationContext())
                         .load(list.get(position).getPicUri()).into(holder.imageView);
         holder.imageView.setOnClickListener(new View.OnClickListener() {

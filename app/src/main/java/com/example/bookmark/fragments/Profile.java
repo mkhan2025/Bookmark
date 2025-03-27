@@ -15,9 +15,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,6 +80,7 @@ public class Profile extends Fragment {
     private FirebaseUser user;
     boolean isMyProfile = true;
     private ImageButton editProfileBtn;
+    ImageView bookmarkBtn; 
     String uid;
     private Uri imageUri;
     FirestoreRecyclerAdapter adapter;
@@ -143,7 +146,12 @@ public class Profile extends Fragment {
 //        {
 //            ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
 //        }
-
+        bookmarkBtn = view.findViewById(R.id.bookmarkBtn);
+        bookmarkBtn.setOnClickListener(v -> {
+            Log.d("Profile", "Bookmark button clicked");
+            ViewPager viewPager = getActivity().findViewById(R.id.viewPager);
+            viewPager.setCurrentItem(1);  // Switch to Bookmarks tab (index 1)
+        });
         nameTV = view.findViewById(R.id.nameTV);
 //        toolbarNameTV = view.findViewById(R.id.toolbarNameTV);
         bioTV = view.findViewById(R.id.bioTV);
@@ -161,7 +169,9 @@ public class Profile extends Fragment {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
-    }
+}
+
+
     private void getBasicData(){
         DocumentReference userRef = FirebaseFirestore.getInstance().collection("Users")
                 .document(user.getUid());

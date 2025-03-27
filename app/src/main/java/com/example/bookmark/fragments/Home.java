@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import com.example.bookmark.R;
 import com.example.bookmark.ReplacerActivity;
 import com.example.bookmark.adapter.HomeAdapter;
+import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.HomeModel;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,7 @@ public class Home extends Fragment {
     private FirebaseUser user;
     HomeAdapter adapter;
     private List<HomeModel> list;
+    private List<BookmarksModel> bookmarksList;
     private ImageButton sendBtn;
 
     DocumentReference reference;
@@ -66,17 +68,18 @@ public class Home extends Fragment {
         activity = getActivity();
         init(view);
 //        reference = FirebaseFirestore.getInstance().collection("Posts").document(user.getUid());
+        bookmarksList = new ArrayList<>();
         list = new ArrayList<>();
         adapter = new HomeAdapter(list, getActivity());
         recyclerView.setAdapter(adapter);
         loadDataFromFirestore();
+        loadBookmarksFromFirestore();
         clickListener();
 
         //
 
     }
     private void clickListener(){
-        
 
     }
     private void init(View view){
@@ -140,6 +143,32 @@ public class Home extends Fragment {
             adapter.notifyDataSetChanged();
         });
     }
+    private void loadBookmarksFromFirestore() {
+        if (user == null) {
+            Log.e("FirestoreError", "User is null");
+            return;
+        }
+        bookmarksList.clear();
+        CollectionReference collectionReference = FirebaseFirestore.getInstance()
+                .collection("Users")
+                .document(user.getUid())
+                .collection("Bookmarks");
+        collectionReference.addSnapshotListener((value, error) ->    {
+            if (error != null) {
+                Log.e("FirestoreError", error.getMessage());
+                return;
+            }
+            if (value == null || value.isEmpty()) {
+                Log.e("FirestoreError", "No documents found");
+                return;
+            }
+            for (QueryDocumentSnapshot snapshot : value) {
+                BookmarksModel model = snapshot.toObject(BookmarksModel.class);
+                bookmarksList.add(new BookmarksModel(model.getOriginalUserId(), model.getBookmarkedPostId(), model.getTimestamp()));
+            }
+        });
+                
+    }   
 
 }
 

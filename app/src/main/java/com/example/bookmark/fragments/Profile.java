@@ -83,6 +83,7 @@ public class Profile extends Fragment {
     ImageView bookmarkBtn; 
     String uid;
     private Uri imageUri;
+    //FirestoreRecyclerAdapter is a class that is used to get the post images from the Firestore database and display the user's posts in a grid. 
     FirestoreRecyclerAdapter adapter;
 
     public Profile() {
@@ -190,13 +191,13 @@ public class Profile extends Fragment {
                     int following = value.getLong("following").intValue();
                     int followers = value.getLong("followers").intValue();
                     final String profileURL = value.getString("profileImage");
-
+            // Update UI with retrieved data
                     nameTV.setText(name);
 //                    toolbarNameTV.setText(name);
                     bioTV.setText(bio);
                     followersCountTV.setText(String.valueOf(followers));
                     followingCountTV.setText(String.valueOf(following));
-
+            // Load profile image
                     Glide.with(getContext().getApplicationContext()).load(profileURL).placeholder(R.drawable.girl).timeout(6500).into(profilePic);
 
 

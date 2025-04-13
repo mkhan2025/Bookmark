@@ -84,14 +84,14 @@ public class CreateAccountFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-//                String name = nameET.getText().toString();
-//                String email = emailET.getText().toString();
-//                String password = passwordET.getText().toString();
-//                String confirmPass = confirmPassET.getText().toString();
-                String name = "abc";
-                String email = "omer@gmail.com";
-                String password = "aaaaaa";
-                String confirmPass = "aaaaaa";
+               String name = nameET.getText().toString();
+               String email = emailET.getText().toString();
+               String password = passwordET.getText().toString();
+               String confirmPass = confirmPassET.getText().toString();
+                // String name = "abc";
+                // String email = "omer@gmail.com";
+                // String password = "aaaaaa";
+                // String confirmPass = "aaaaaa";
 
                 if (name.isEmpty() || name.equals(""))
                 {
@@ -121,6 +121,7 @@ public class CreateAccountFragment extends Fragment {
 
     private void createAccount(String name, String email, String password)
     {
+        //firebase auth automatically creates the user 
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {

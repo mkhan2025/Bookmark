@@ -93,6 +93,7 @@ public class LoginFragment extends Fragment {
                     passwordET.setError("Please enter a valid password");
                 }
                 progressBar.setVisibility(VISIBLE);
+                // firebaseAuth automatically handles authentication.
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {

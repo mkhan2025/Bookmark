@@ -29,24 +29,26 @@ import java.util.Locale;
 import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
+//the job of the adapter is to bind the data (CommentModel) to the views (CommentHolder) and to handle the click events
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentHolder> {
     private List<CommentModel> list;
     private Context context;
 
-
+//context is the activity that is hosting the RecyclerView which in this case is the HomeAdapter
+//this constructor is called by the HomeAdapter when the commentBtn is clicked
     public CommentAdapter(List<CommentModel> list, Context context) {
         this.list = list;
         this.context = context;
     }
 
+//onCreateViewHolder is called by the RecyclerView to create a new CommentHolder object
     @NonNull
     @Override
     public CommentHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.comment_items, parent, false);
         return new CommentHolder(view);
     }
-
+//onBindViewHolder is called by the RecyclerView to display the data at the specified position
     @Override
     public void onBindViewHolder(@NonNull CommentHolder holder, int position) {
         CommentModel comment = list.get(position);
@@ -74,11 +76,12 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentH
     public int getItemCount() {
         return list.size();
     }
+    //updateComments is a method that updates the comments list and notifies the adapter that the data has changed
     public void updateComments(List<CommentModel> newComments) {
     this.list = newComments;
     notifyDataSetChanged();
 }
-
+//CommentHolder is a nested class that stored references to the views in the comment_items layout
     static class CommentHolder extends RecyclerView.ViewHolder {
         CircleImageView commentProfilePic;
         TextView commentUsername;

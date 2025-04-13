@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+//CommentModel is the data class that represents the comment object
 public class CommentModel {
     private String comment, uid, username, profileImage;
     private Date timestamp;

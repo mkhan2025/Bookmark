@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id = "@+id/profilePic"
         android:layout_width="56dp"
@@ -75,8 +75,8 @@
             android:id = "@+id/likeBtn"
             android:layout_margin="5dp"/>
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/comment"
             android:id = "@+id/commentBtn"
             android:layout_margin="5dp"/>
@@ -92,13 +92,12 @@
             android:background="@drawable/bookmark"
             android:id = "@+id/bookmarkBtn"
             android:layout_margin="5dp"/>
-
     </LinearLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text = "100 Likes"
-        android:layout_below="@id/descriptionTV"
+        android:layout_below="@id/linearLayout"
         android:layout_marginStart="5dp"
         android:paddingStart="5dp"
         android:paddingEnd = "5dp"
@@ -108,7 +107,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text = "Description"
-        android:layout_below="@id/linearLayout"
+        android:layout_below="@id/likeCountTV"
         android:layout_marginStart="5dp"
         android:paddingStart="5dp"
         android:paddingEnd = "5dp"

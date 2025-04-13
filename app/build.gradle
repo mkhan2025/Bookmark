@@ -52,6 +52,8 @@ dependencies {
     implementation libs.circleimageview
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
+    implementation libs.firebase.database
+    implementation libs.firebase.appcheck.playintegrity
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
@@ -59,7 +61,6 @@ dependencies {
     implementation(libs.android.image.cropper)
     implementation libs.dexter
     implementation libs.firebase.ui.firestore
-    implementation libs.places.v420
     implementation 'com.google.android.libraries.places:places:3.3.0'
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'com.google.android.gms:play-services-location:21.2.0'

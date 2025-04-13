@@ -16,12 +16,17 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.gms.maps.model.Marker;
 
 import android.Manifest;
 
@@ -56,6 +61,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
                         enableUserLocation();
+                        loadBookmarkedLocations(); 
                     }
 
                     @Override
@@ -70,29 +76,52 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 }).check();
 
 
-        LatLng scoops = new LatLng(39.64379259389463, -86.8643773763308);
+        LatLng compHis = new LatLng(37.41445332379147, -122.07739827458252);
         googleMap.addMarker(new MarkerOptions()
-                .position(scoops)
-                .title("Scoops"));
-        LatLng conspire = new LatLng(39.643988204670954, -86.86397886781502);
-        googleMap.addMarker(new MarkerOptions()
-                .position(conspire)
-                .title("Conspire"));
-        LatLng roy = new LatLng(39.64101970800983, -86.86389084934379);
-        googleMap.addMarker(new MarkerOptions()
-                .position(roy)
-                .title("Roy"));
-        LatLng gcpa = new LatLng(39.63833602816779, -86.86170354564707);
-        googleMap.addMarker(new MarkerOptions()
-                .position(gcpa)
-                .title("GCPA"));
-        LatLng julian = new LatLng(39.639278042872604, -86.86271916468584);
-        googleMap.addMarker(new MarkerOptions()
-                .position(julian)
-                .title("Julian"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(scoops));
-    }
+                .position(compHis)
+                .title("Computer History Museum"));
 
+//        googleMap.moveCamera(CameraUpdateFactory.newLatLng(harvard));
+    }
+    private void loadBookmarkedLocations(){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance()
+        .collection("Users")
+        .document(user.getUid())
+        .collection("Bookmarks")
+        .get()
+        .addOnSuccessListener(querySnapshot -> {
+            for (DocumentSnapshot bookmark : querySnapshot.getDocuments()){
+                if (!bookmark.exists()){
+                    return;
+                }
+                String postId = bookmark.getString("bookmarkedPostId");
+                String originalUserId = bookmark.getString("originalUserId");
+                fetchPostData(originalUserId, postId);
+            }
+        });
+    }
+    private void fetchPostData(String originalUserId, String postId){
+        FirebaseFirestore.getInstance().collection("Users").document(originalUserId).collection("Post Images").document(postId).get().addOnSuccessListener(postDoc -> {
+            if (postDoc.exists()){
+                String locationName = postDoc.getString("locationName");
+                double latitude = postDoc.getDouble("latitude");
+                double longitude = postDoc.getDouble("longitude");
+                createMarkerForPost(locationName, latitude, longitude, postDoc);
+            }
+        });
+    }
+    // Pseudo-code
+private void createMarkerForPost(String title, double lat, double lng, DocumentSnapshot postData) {
+    LatLng position = new LatLng(lat, lng);
+    
+    // Add marker to map
+    Marker marker = googleMap.addMarker(new MarkerOptions()
+        .position(position)
+        .title(title));
+}
     @SuppressLint("MissingPermission")
     private void enableUserLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

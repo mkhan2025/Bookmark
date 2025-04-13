@@ -94,7 +94,7 @@ public class BookmarksFragment extends Fragment {
          if (recyclerView != null) {
             recyclerView.setAdapter(adapter);
         }
-        loadBookmarks();
+       loadBookmarks();
     }
 
     private void init(View view) {
@@ -123,7 +123,8 @@ public class BookmarksFragment extends Fragment {
             return;
         }
 
-        Log.d("BookmarksFragment", "Loading bookmarks for user: " + user.getUid());
+Log.d("BookmarksFragment", "Starting to load bookmarks");
+Log.d("BookmarksFragment", "Current user ID: " + user.getUid());
         Query query = FirebaseFirestore.getInstance()
             .collection("Users")
             .document(user.getUid())
@@ -137,9 +138,10 @@ public class BookmarksFragment extends Fragment {
             }
 
             if (value == null || value.isEmpty()) {
+                Log.d("BookmarksFragment", "No bookmarks found");
                 return;
             }
-            Log.d("BookmarksFragment", "Bookmarks loaded: " + value.size());
+            Log.d("BookmarksFragment", "Bookmarks loaded: " + value.toObjects(BookmarksModel.class));
 
             list.clear();
             for (BookmarksModel bookmark : value.toObjects(BookmarksModel.class)) {
@@ -162,7 +164,7 @@ public class BookmarksFragment extends Fragment {
                                 Uri imageUri = Uri.parse(imageUrl);
                                 Galleryimages galleryModel = new Galleryimages(imageUri);
                                 list.add(galleryModel);
-                                
+
                                 // Update adapter with new data
                                 adapter.notifyDataSetChanged();
                             }

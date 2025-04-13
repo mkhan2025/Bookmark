@@ -35,6 +35,7 @@ import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
+import com.example.bookmark.MainActivity;
 import com.example.bookmark.R;
 import com.example.bookmark.adapter.GalleryAdapter;
 import com.example.bookmark.model.Galleryimages;
@@ -46,9 +47,13 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.appcheck.FirebaseAppCheck;
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -68,7 +73,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+//Add is a fragment that is used to add a new post. It uses the GalleryAdapter to display the images in the RecyclerView. It also uses the AutocompleteSupportFragment to get the location of the post.
 public class Add extends Fragment {
 
     private EditText descET;
@@ -83,20 +88,22 @@ public class Add extends Fragment {
     Dialog dialog;
     private Place selectedPlace;  // Stores the selected place from AutocompleteSupportFragment
 
-    //autocomplete widget prediction
+    //autocomplete widget prediction for location selection
     AutocompleteSupportFragment autocompleteFragment;
     String [] activityType = {"Outdoor", "Indoor", "Adventure", "Eating", "Tourist"};
+    //autocomplete widget prediction for activity type selection
     AutoCompleteTextView autoCompleteTextView;
+    //ArrayAdapter is an adapter that is used to display the activity type in the dropdown
     ArrayAdapter<String> adapterItems;
     String activityItem;
 
-    private PlacesClient placesClient;
 
     public Add() {
         // Required empty public constructor
     }
-
+    //ActivityResultLauncher is a class that is used to launch the activity result of the cropImage
     private final ActivityResultLauncher<CropImageContractOptions> cropImage =
+            //method registerForActivityResult is used to register the activity result of the cropImage
             registerForActivityResult(new CropImageContract(), result -> {
                 if (result.isSuccessful()) {
                     imageUri = result.getUriContent();
@@ -131,38 +138,68 @@ public class Add extends Fragment {
         requestPermissionsAndLoadGallery();
         clickListener();
 
-        // Initialize Places API
-        if (!Places.isInitialized()) {
-            Places.initialize(requireContext(), getString(R.string.google_maps_key));
-        }
-        placesClient = Places.createClient(requireContext());
-        
+        String apiKey = "AIzaSyA7chOcKSTr-xNmL6bwz_Txw5LQABIzNC4";
+//        Places.initialize(getApplicationContext(), apiKey);
+//        PlacesClient placesClient = Places.createClient(this);
+
+        // Initialize App Check
+        // Initialize App Check
+
+// Initialize Places SDK
+
+
+
         // Initialize AutocompleteSupportFragment
+        Log.d("PlacesAPI", "Setting up AutocompleteSupportFragment in Add fragment");
         autocompleteFragment = (AutocompleteSupportFragment)
                 getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        
-        if (autocompleteFragment != null) {
-            autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
-            
-            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-                @Override
-                public void onPlaceSelected(@NonNull Place place) {
-                    selectedPlace = place;
-                    Log.i("PlacesAPI", "Place selected: " + place.getName());
-                }
+        Log.d("PlacesAPI", "AutocompleteFragment found: " + (autocompleteFragment != null));
 
-                @Override
-                public void onError(@NonNull Status status) {
-                    Log.e("PlacesAPI", "An error occurred: " + status);
+        if (autocompleteFragment != null) {
+            try {
+                Places.initializeWithNewPlacesApiEnabled(getContext(), apiKey);
+                //PlacesClient is a client that is used to get the places from the Places API
+                PlacesClient placesClient = Places.createClient(getContext());
+
+                // Get the shared PlacesClient instance
+//                PlacesClient placesClient = MainActivity.getPlacesClient();
+                if (placesClient == null) {
+                    Log.e("PlacesAPI", "PlacesClient is null from MainActivity");
+                    return;
                 }
-            });
+                Log.d("PlacesAPI", "Got PlacesClient instance from MainActivity");
+                //set the place fields to be returned from the Places API
+                autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+                Log.d("PlacesAPI", "Place fields set successfully");
+                //set the place selection listener
+                autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+                    @Override
+                    public void onPlaceSelected(@NonNull Place place) {
+                        selectedPlace = place;
+                        Log.d("Autocomplete", "Selected Place: " + place.getName() + ", ID: " + place.getId());
+                        Toast.makeText(getContext(), "Selected Place: " + place.getName(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(@NonNull Status status) {
+                        Log.e("PlacesAPI", "Place selection error: " + status.getStatusMessage());
+                        Log.e("PlacesAPI", "Status code: " + status.getStatusCode());
+                        Log.e("PlacesAPI", "Error details: " + status.getStatusMessage());
+                    }
+                });
+                img.setVisibility(View.VISIBLE);
+                next.setVisibility(View.GONE);
+                Log.d("PlacesAPI", "Place selection listener set successfully");
+            } catch (Exception e) {
+                Log.e("PlacesAPI", "Error setting up AutocompleteFragment: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     private void clickListener() {
         // Click listener for selecting an image
         img.setOnClickListener(v -> openImagePicker());
-
         adapter.SendImage(picUri -> {
 //            imageUri = picUri;
             CropImageOptions options = new CropImageOptions();
@@ -179,8 +216,10 @@ public class Add extends Fragment {
             }
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
+            //storageReference is a reference requires timestamp to avoid duplicate file names
             StorageReference storageReference = storage.getReference().child("Post Images/" + System.currentTimeMillis());
             dialog.show();
+            //putFile is a method that uploads the image to Firebase storage
             storageReference.putFile(imageUri)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -201,6 +240,7 @@ public class Add extends Fragment {
 
     private void uploadData(String imageURL) {
         Log.d("FirestoreUpload", "Uploading activity type: " + imageURL);
+        //addOnSuccessListener is a method that is used to get the user's name from the Firestore database
         FirebaseFirestore.getInstance().collection("Users").document(user.getUid()).get().addOnSuccessListener(documentSnapshot -> {
             String userName = documentSnapshot.getString("name");
             Log.d("AddFragment", "User name from profile: " + userName);
@@ -226,6 +266,11 @@ public class Add extends Fragment {
         if (selectedPlace != null) {
             map.put("placeId", selectedPlace.getId());
             map.put("locationName", selectedPlace.getName());
+        
+        if (selectedPlace.getLatLng() != null){
+            map.put("latitude", selectedPlace.getLatLng().latitude);
+            map.put("longitude", selectedPlace.getLatLng().longitude);
+        }
         }
         if(activityItem != null){
             map.put("activityType", activityItem);
@@ -297,6 +342,26 @@ public class Add extends Fragment {
         dialog.setContentView(R.layout.loading_dialog);
         dialog.getWindow().setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(),R.drawable.dialog_bg, null));
         dialog.setCancelable(false);
+        autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setLocationBias(RectangularBounds.newInstance(new LatLng(39.64379259389463, -86.8643773763308), new LatLng(40.7128, 74.0060)));
+        autocompleteFragment.setCountries("US");
+        //specify the types of place data to return
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                selectedPlace = place;  // <-- Now we are setting it here
+                Log.d("Autocomplete", "Selected Place: " + place.getName() + ", ID: " + place.getId());
+                Toast.makeText(getContext(), "Selected Place: " + place.getName(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(@NonNull Status status) {
+                Log.e("Autocomplete", "Error: " + status);
+                Toast.makeText(getContext(), "Error: " + status, Toast.LENGTH_SHORT).show();
+            }
+        });
         autoCompleteTextView = view.findViewById(R.id.autocomplete_text);
         adapterItems = new ArrayAdapter<String>(getContext(), R.layout.list_item, activityType);
         autoCompleteTextView.setAdapter(adapterItems);

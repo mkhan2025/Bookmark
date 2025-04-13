@@ -19,9 +19,11 @@ import java.util.BitSet;
 import com.example.bookmark.model.Galleryimages;
 import java.util.List;
 
+//GalleryAdapter is a adapter that is used to display the images in the RecyclerView. I have used the same adapter for the bookmarks and the home page
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryHolder> {
 
     private List<Galleryimages> list;
+    //sendImage is a interface that is used to send the image to the activity that is hosting the RecyclerView which in this case is the BookmarksFragment
     SendImage onSendimage;
 
     public GalleryAdapter(List<Galleryimages> list) {
@@ -32,6 +34,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryH
     @Override
 
     public GalleryHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        //image_items.xml only has one imageView so we can use the same adapter for the bookmarks and the home page
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.image_items, parent, false); 
         return new GalleryHolder(view);
     }
@@ -46,9 +49,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryH
                         .load(list.get(position).getPicUri()).into(holder.imageView);
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
+            //this method gets the position of the image that is clicked and then sends the image to the activity that is hosting the RecyclerView which in this case is the BookmarksFragment
             public void onClick(View v) {
                 int adapterPosition = holder.getAdapterPosition();
                 if (adapterPosition != RecyclerView.NO_POSITION) {
+                    //calling the chooseImage to send the picUri to the recyclerView
                     chooseImage(list.get(adapterPosition).getPicUri());
                 }
             }
@@ -74,6 +79,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryH
     public interface SendImage {
         void onSend(Uri picUri);
     }
+    //This method is used to send the image to the activity that is hosting the RecyclerView which in this case is the BookmarksFragment. It is called by the BookmarksFragment
     public void SendImage (SendImage sendImage){
         this.onSendimage = sendImage;
     }

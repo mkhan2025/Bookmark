@@ -21,19 +21,32 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Firebase;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.appcheck.FirebaseAppCheck;
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.core.TokenProvider;
 
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
-
+    //sets the tabs at the bottom
     private TabLayout tabLayout;
+    //empty space where the app content will go
     private ViewPager viewPager;
+//    private static PlacesClient placesClient;  // Make it static so it can be accessed from other classes
 
     PagerAdapter pagerAdapter;
+    //intiating curr firebase user 
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private ImageButton sendBtn;
+
+//    public PlacesClient getPlacesClient() {
+//        return placesClient;
+//    }
+//
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,10 +58,12 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         init();
-//
-//        String apiKey = getString(R.string.google_maps_key);
-//        Places.initialize(getApplicationContext(), apiKey);
-//        PlacesClient placesClient = Places.createClient(this);
+
+        FirebaseApp.initializeApp(/*context=*/ this);
+        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
+        firebaseAppCheck.installAppCheckProviderFactory(
+                PlayIntegrityAppCheckProviderFactory.getInstance());
+
         addTabs();
     }
     private void init(){
@@ -186,5 +201,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+
 
 }

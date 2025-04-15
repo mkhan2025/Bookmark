@@ -31,10 +31,19 @@ import com.google.android.material.slider.Slider;
 import android.Manifest;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Spinner;
+import com.example.bookmark.model.SpinnerModel;
+import com.example.bookmark.adapter.SpinnerAdapter;
+
 
 
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
@@ -43,8 +52,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
     private Slider slider;
+    private Spinner spinner;
     private Map<String, Marker> markers = new HashMap<>();
     private Map<String, LatLng> locationData = new HashMap<>();  // Stores locations
+    // private Set<String> selectedActivities = new HashSet<>();
+    private Map<String, String> postActivities = new HashMap<>();  // postId -> activityType
 
     public MapsFragment() {
         super(R.layout.fragment_maps);
@@ -58,14 +70,42 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         mapView.getMapAsync(this);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         slider = view.findViewById(R.id.radiusSlider);
+        spinner = view.findViewById(R.id.activity_dropdown);
         slider.addOnChangeListener(new Slider.OnChangeListener() {
             @Override
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
                         Log.d("MapsDebug", "Slider value changed to: " + value);
-                updateMarkersForRadius(value);
+                SpinnerModel selectedModel = (SpinnerModel) spinner.getSelectedItem();
+                String selectedActivity = selectedModel.getActivityType();
+                updateMarkers(value, selectedActivity);
             }
         });
+        List<SpinnerModel> list = new ArrayList<>();
+        list.add(new SpinnerModel("Outdoor"));
+        list.add(new SpinnerModel("Indoor"));
+        list.add(new SpinnerModel("Adventure"));
+        list.add(new SpinnerModel("Eating"));
+        list.add(new SpinnerModel("Tourist"));
+        list.add(new SpinnerModel("All"));
+        SpinnerAdapter adapter = new SpinnerAdapter(list, requireContext());
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedActivity = list.get(position).getActivityType();
+         
+            updateMarkers(slider.getValue(), selectedActivity);
+        
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d("MapsDebug", "Nothing selected");
+                updateMarkers(slider.getValue(), "All");
     }
+    }); 
+    }
+
 
         @Override
         public void onMapReady(@NonNull GoogleMap googleMap){
@@ -115,8 +155,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) return;
 
-                Log.d("MapsDebug", "Starting to load bookmarked locations");
-                clearAllMarkers();
+            clearAllMarkers();
             FirebaseFirestore.getInstance()
                     .collection("Users")
                     .document(user.getUid())
@@ -142,7 +181,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                             fetchPostData(originalUserId, postId);
                         }
                         Log.d("MapsDebug", "Updating markers for radius: " + slider.getValue());
-                        updateMarkersForRadius(slider.getValue());
+                    updateMarkers(slider.getValue(), spinner.getSelectedItem().toString());
                     });
         }
         private void clearAllMarkers() {
@@ -160,36 +199,24 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 String locationName = postDoc.getString("locationName");
                 double latitude = postDoc.getDouble("latitude");
                 double longitude = postDoc.getDouble("longitude");
+                String activityType = postDoc.getString("activityType");
                 Log.d("MapsDebug", "Location data: " + locationName + " at " + latitude + "," + longitude);
                 //to get user's current location
                 if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-                else {
-                Log.e("MapsDebug", "Post document doesn't exist");
-            }
+                
                 fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                     if (location != null) {
-                        double currLatitude = location.getLatitude();
-                        double currLongitude = location.getLongitude();
-                        // double distance = calculateDistance(latitude, longitude, currLatitude, currLongitude);
-                        //to get the radius from the slider
-                        createMarkerForPost(locationName, latitude, longitude, postDoc);
-                        updateMarkersForRadius(slider.getValue());
+                        createMarkerForPost(locationName, latitude, longitude, activityType, postDoc);
+                        updateMarkers(slider.getValue(), spinner.getSelectedItem().toString());
                     }
                 });
                 // createMarkerForPost(locationName, latitude, longitude, postDoc);
             }
         });
     }
-    private void createMarkerForPost(String title,double lat, double lng, DocumentSnapshot
+    private void createMarkerForPost(String title,double lat, double lng, String activityType, DocumentSnapshot
             postData){
         Log.d("MapsDebug", "Creating marker for: " + title);
         LatLng position = new LatLng(lat, lng);
@@ -201,18 +228,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         String postId = postData.getId();
         markers.put(postId, marker);
         locationData.put(postId, position);
+        postActivities.put(postId, activityType);
         Log.d("MapsDebug", "Marker created and stored. Total markers: " + markers.size());
     }
-    private void updateMarkersForRadius(float radius) {
+    private void updateMarkers(float radius, String selectedActivity) {
             Log.d("MapsDebug", "Updating markers for radius: " + radius + ", Total markers: " + markers.size());
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
@@ -224,18 +245,20 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     LatLng markerLocation = entry.getValue().getPosition();
                     double distance = calculateDistance(markerLocation.latitude, markerLocation.longitude, currentLocation.latitude, currentLocation.longitude);
                     Log.d("MapsDebug", "Marker " + postId + " distance: " + distance + " km");
-                    if (distance <= radius) {
-                        entry.getValue().setVisible(true);
-                        Log.d("MapsDebug", "Showing marker at distance: " + distance);
-                    } else {
-                        entry.getValue().setVisible(false);
-                        Log.d("MapsDebug", "Hiding marker at distance: " + distance);
-                    }
+                    String markerActivity = postActivities.get(postId);
+                     boolean isWithinRadius = distance <= radius;
+                boolean matchesActivity = selectedActivity.equals("All") || 
+                                       (markerActivity != null && markerActivity.equals(selectedActivity));
+                
+                Log.d("MapsDebug", String.format(
+                    "Marker %s: distance=%.2f, activity=%s, selected=%s, visible=%b",
+                    postId, distance, markerActivity, selectedActivity, (isWithinRadius && matchesActivity)
+                ));
+                
+                entry.getValue().setVisible(isWithinRadius && matchesActivity);
+       
                 }
             }
-            else {
-            Log.e("MapsDebug", "Location is null");
-        }
         });
     }
 

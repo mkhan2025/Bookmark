@@ -99,6 +99,7 @@ public class Add extends Fragment {
 
 
     public Add() {
+        Log.d("Add", "started");
         // Required empty public constructor
     }
     //ActivityResultLauncher is a class that is used to launch the activity result of the cropImage
@@ -262,6 +263,7 @@ public class Add extends Fragment {
          map.put("likeCount", 0);
          map.put("comment", "");
          map.put("uid", user.getUid());
+         map.put("timestamp", System.currentTimeMillis());
 
         if (selectedPlace != null) {
             map.put("placeId", selectedPlace.getId());

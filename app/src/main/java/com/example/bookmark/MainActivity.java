@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.bookmark.adapter.PagerAdapter;
@@ -122,6 +123,15 @@ public class MainActivity extends AppCompatActivity {
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
 
+
+// Add this: Hide mainFrameLayout when switching tabs
+                View frameLayout = findViewById(R.id.mainFrameLayout);
+                if (frameLayout != null && frameLayout.getVisibility() == View.VISIBLE) {
+                    frameLayout.setVisibility(View.GONE);
+                    // Clear back stack when switching tabs
+                    getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
+                
                 switch(tab.getPosition()){
 
                     case 0:

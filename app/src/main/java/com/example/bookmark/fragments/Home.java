@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 
 import com.example.bookmark.R;
@@ -45,6 +47,7 @@ public class Home extends Fragment {
     private List<HomeModel> list;
     private List<BookmarksModel> bookmarksList;
     private ImageButton sendBtn;
+    private Button trendingBtn;
 
     DocumentReference reference;
 
@@ -79,9 +82,128 @@ public class Home extends Fragment {
         //
 
     }
-    private void clickListener(){
 
-    }
+private void clickListener() {
+    trendingBtn.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            try {
+                Log.d("TrendingDebug", "trending btn clicked");
+                
+                if (getActivity() == null) {
+                    Log.e("TrendingDebug", "Activity is null");
+                    return;
+                }
+
+                // Get the ViewPager's current item view
+                // ViewGroup container = (ViewGroup) getView().getParent();
+                // View viewPager = getActivity().findViewById(R.id.viewPager);
+                // View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                
+                // if (viewPager != null && frameLayout != null) {
+                //     viewPager.setVisibility(View.GONE);
+                //     frameLayout.setVisibility(View.VISIBLE);
+                // }
+
+                View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                if (frameLayout != null) {
+                    frameLayout.setVisibility(View.VISIBLE);
+                }
+
+                FragmentTransaction transaction = getActivity()
+                    .getSupportFragmentManager()
+                    .beginTransaction();
+                
+                transaction.replace(R.id.mainFrameLayout, new TrendingFragment())
+                    .addToBackStack(null)
+                    .commit();
+                
+                Log.d("TrendingDebug", "Transaction committed");
+                
+            } catch (Exception e) {
+                Log.e("TrendingDebug", "Error in transaction", e);
+                e.printStackTrace();
+            }
+        }
+    });
+}
+
+
+
+// private void clickListener() {
+//     trendingBtn.setOnClickListener(new View.OnClickListener() {
+//         @Override
+//         public void onClick(View v) {
+//             try {
+//                 Log.d("TrendingDebug", "trending btn clicked");
+                
+//                 // Use activity's fragment manager instead
+//                 if (getActivity() == null) {
+//                     Log.e("TrendingDebug", "Activity is null");
+//                     return;
+//                 }
+
+// View viewPager = getActivity().findViewById(R.id.viewPager);
+//                 View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                
+//                 viewPager.setVisibility(View.GONE);
+//                 frameLayout.setVisibility(View.VISIBLE);
+
+//                 FragmentTransaction transaction = getActivity()
+//                     .getSupportFragmentManager()
+//                     .beginTransaction();
+                
+//                 transaction.replace(container.getId(), new TrendingFragment())
+//                     .addToBackStack(null)
+//                     .commit();
+                
+//                 Log.d("TrendingDebug", "Transaction committed");
+                
+//             } catch (Exception e) {
+//                 Log.e("TrendingDebug", "Error in transaction", e);
+//                 e.printStackTrace();
+//             }
+//         }
+//     });
+// }
+
+    // private void clickListener(){
+    //     trendingBtn.setOnClickListener(new View.OnClickListener() {
+    //         @Override
+    //         public void onClick(View v) {
+    //             try{
+    //                 Log.d("TrenndingDebug", "trending btn clicked");
+    //                 if (getParentFragmentManager() == null){
+    //                 Log.e("TrendingDebug", "FragmentManager is null");
+    //                 return;
+    //             }
+    //             // Add these debug logs
+    //             Log.d("TrendingDebug", "Creating new TrendingFragment instance");
+    //             TrendingFragment fragment = new TrendingFragment();
+                
+    //             Log.d("TrendingDebug", "Starting transaction");
+    //             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+    //             Log.d("TrendingDebug", "Transaction created");
+                
+    //             // Log the container ID
+    //             Log.d("TrendingDebug", "Using container ID: " + R.id.frameLayout);
+                
+    //             transaction.replace(R.id.frameLayout, fragment);
+    //             Log.d("TrendingDebug", "Replace called");
+                
+    //             transaction.addToBackStack(null);
+    //             Log.d("TrendingDebug", "Added to back stack");
+                
+    //             transaction.commit();
+    //             Log.d("TrendingDebug", "Transaction committed");
+                      
+    //   } catch (Exception e){
+    //     Log.e("TrendingDebug", "Error in transaction", e);
+    //             e.printStackTrace();
+    //   }
+    //     }
+    // });
+    // }
     private void init(View view){
 //        Toolbar toolbar = view.findViewById(R.id.toolbar);
 //        if (getActivity() != null)
@@ -89,9 +211,18 @@ public class Home extends Fragment {
 //            ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
 //        }
         recyclerView = view.findViewById(R.id.recyclerView);
+        if (recyclerView == null){
+            Log.e("TrendingDebug", "RecyclerView is null");
+        }
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        trendingBtn = view.findViewById(R.id.trendingButton);
+        if (trendingBtn == null){
+            Log.e("TrendingDebug", "Trending button is null");
+        }
+        else{
+            Log.d("TrendingDebug", "Trending button initialized");
+        }
         FirebaseAuth auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
 
@@ -127,7 +258,7 @@ public class Home extends Fragment {
                 }
                 HomeModel model = snapshot.toObject(HomeModel.class);
                 Log.d("HomeFragment", "Post name: " + model.getName());
-                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage(), model.getLikeCount(), model.getLikedBy(), model.getLatitude(), model.getLongitude()));
+                list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(),model.getActivityType(), model.getLocalPostImage(), model.getLikeCount(), model.getLikedBy(), model.getLatitude(), model.getLongitude(), model.getTimestamp(), model.getTrendingScore()));
             }
             LIST_SIZE = list.size();
             adapter.notifyDataSetChanged();

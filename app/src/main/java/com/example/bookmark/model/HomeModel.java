@@ -5,6 +5,8 @@ import java.util.List;
 
 public class HomeModel {
     private String uid, profileImage, imageUrl, name, comment, description, id, locationName, activityType;
+    private float trendingScore; 
+    private long timestamp; 
     //    private String timeStamp;
     private double latitude, longitude;
     private int likeCount;
@@ -15,7 +17,7 @@ public class HomeModel {
     public HomeModel() {
     }
 
-    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage, int likeCount, List<String>likedBy, double latitude, double longitude) {
+    public HomeModel(String uid, String profileImage, String imageUrl, String name, String comment, String description, String id, String locationName, String activityType, int localPostImage, int likeCount, List<String>likedBy, double latitude, double longitude, long timestamp, float trendingScore) {
         this.uid = uid;
         this.profileImage = profileImage;
         this.imageUrl = imageUrl;
@@ -27,6 +29,8 @@ public class HomeModel {
         this.activityType = activityType;
         this.localPostImage = localPostImage;
         this.likeCount = likeCount;
+        this.timestamp = System.currentTimeMillis();
+        this.trendingScore = trendingScore;
     }
     public double getLatitude() {
         return latitude;
@@ -136,4 +140,17 @@ public class HomeModel {
     public void setLocalPostImage(int localPostImage) {
         this.localPostImage = localPostImage;
     }
+    public float getTrendingScore(){
+        return trendingScore;
+    }
+    public void setTrendingScore(float trendingScore){
+        this.trendingScore = trendingScore;
+    }   
+    public long getTimestamp(){
+        return timestamp;
+    }
+    public void setTimestamp(long timestamp){
+        this.timestamp = timestamp;
+    }
+    //im not getting the initializing likedBy in my constructor
 }

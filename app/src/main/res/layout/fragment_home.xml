@@ -6,19 +6,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.Home">
 
-    <Button
-        android:id="@+id/trendingButton"
+    <LinearLayout
+        android:id="@+id/buttonContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:padding="8dp"
-        android:text="Trending"
-        android:textColor="@android:color/white"
-        android:background="@color/colorAccent"/>
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:layout_margin="16dp">
+
+        <Button
+            android:id="@+id/localButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Local"
+            android:textColor="@android:color/white"
+            android:background="@color/colorBlack"/>
+
+        <Button
+            android:id="@+id/trendingButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="Trending"
+            android:textColor="@android:color/white"
+            android:background="@color/colorBlack"/>
+
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id = "@+id/recyclerView"/>
+        android:layout_below="@id/buttonContainer"/>
+
 </RelativeLayout>

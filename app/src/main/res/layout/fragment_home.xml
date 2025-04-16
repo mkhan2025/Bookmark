@@ -5,7 +5,14 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.Home">
-
+    <fragment
+        android:id = "@+id/autocomplete_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout"
+        android:clickable="true"
+        android:focusable="true"
+        android:name = "com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
     <LinearLayout
         android:id="@+id/buttonContainer"
         android:layout_width="wrap_content"
@@ -15,24 +22,20 @@
         android:orientation="horizontal"
         android:layout_margin="16dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/localButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
             android:layout_marginEnd="8dp"
             android:text="Local"
-            android:textColor="@android:color/white"
-            android:background="@color/colorBlack"/>
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/trendingButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
             android:text="Trending"
-            android:textColor="@android:color/white"
-            android:background="@color/colorBlack"/>
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     </LinearLayout>
 

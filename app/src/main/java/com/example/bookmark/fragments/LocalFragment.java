@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LocalFragment extends Fragment {
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
-    HomeAdapter adapter;
+    // HomeAdapter adapter;
     private List<HomeModel> list;
     private HomeAdapter localAdapter;
     DocumentReference reference;

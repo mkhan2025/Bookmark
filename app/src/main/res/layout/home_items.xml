@@ -1,116 +1,192 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="16dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id = "@+id/profilePic"
+        android:id="@+id/profilePic"
         android:layout_width="56dp"
         android:layout_height="56dp"
         app:civ_border_color="#181717"
         android:src="@drawable/girl"
         app:civ_border_width="1dp"
         android:layout_margin="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="activity"
+        android:textSize="12sp"
+        android:textAllCaps="true"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:background="@drawable/rounded_activity_background"
+        android:textColor="#3E3B3B"
+        android:id="@+id/activityTV"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="24dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="8dp"
         android:layout_margin="8dp"
         android:layout_toEndOf="@id/profilePic"
+        android:layout_toStartOf="@id/activityTV"
         android:gravity="center_vertical"
         android:orientation="vertical">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Username"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:textColor="@color/colorBlack"
-            android:id="@+id/usernameTV"
-            />
+            android:id="@+id/usernameTV"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="2h"
-            android:textColor="@color/colorBlack"
+            android:textSize="12sp"
+            android:textColor="#636E72"
             android:id="@+id/timeTV"
-            android:visibility="gone"
-            />
+            android:visibility="gone"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="location"
-            android:textColor="@color/colorBlack"
+            android:textSize="14sp"
+            android:textColor="#636E72"
             android:id="@+id/locationTV"
-            android:layout_below = "@id/timeTV"
-            />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="activity"
-            android:textColor="@color/colorBlack"
-            android:id="@+id/activityTV"
-            android:layout_below = "@id/locationTV"
-            />
+            android:layout_below="@id/timeTV"/>
     </LinearLayout>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="220dp"
         android:layout_below="@id/profilePic"
         android:scaleType="centerCrop"
         android:background="#F0F0F0"
-        android:orientation = "horizontal"
-        android:id = "@+id/imageView"/>
+        android:orientation="horizontal"
+        android:id="@+id/imageView"
+        android:layout_marginTop="8dp"/>
+
+    <ImageButton
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/bookmark"
+        android:id="@+id/bookmarkBtn"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/imageView"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"/>
+
     <LinearLayout
-        android:id = "@+id/linearLayout"
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below = "@id/imageView"
-        >
-        <ImageButton
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/heart"
-            android:id = "@+id/likeBtn"
-            android:layout_margin="5dp"/>
-        <ImageButton
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/comment"
-            android:id = "@+id/commentBtn"
-            android:layout_margin="5dp"/>
-        <ImageButton
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/share"
-            android:id = "@+id/shareBtn"
-            android:layout_margin="5dp"/>
-        <ImageButton
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bookmark"
-            android:id = "@+id/bookmarkBtn"
-            android:layout_margin="5dp"/>
+        android:layout_below="@id/imageView"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_toStartOf="@id/bookmarkBtn">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/heart"
+                android:id="@+id/likeBtn"
+                android:layout_margin="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100"
+                android:textSize="14sp"
+                android:textColor="#636E72"
+                android:id="@+id/likeCountTV"
+                android:layout_marginStart="2dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="16dp">
+
+            <ImageButton
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/comment"
+                android:id="@+id/commentBtn"
+                android:layout_margin="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50"
+                android:textSize="14sp"
+                android:textColor="#636E72"
+                android:id="@+id/commentCountTV"
+                android:layout_marginStart="2dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="16dp">
+
+            <ImageButton
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/share"
+                android:id="@+id/shareBtn"
+                android:layout_margin="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="25"
+                android:textSize="14sp"
+                android:textColor="#636E72"
+                android:id="@+id/shareCountTV"
+                android:layout_marginStart="2dp"/>
+
+        </LinearLayout>
     </LinearLayout>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text = "100 Likes"
+        android:text="Description"
         android:layout_below="@id/linearLayout"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="15dp"
         android:paddingStart="5dp"
-        android:paddingEnd = "5dp"
-        android:id="@+id/likeCountTV"
-        />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text = "Description"
-        android:layout_below="@id/likeCountTV"
-        android:layout_marginStart="5dp"
-        android:paddingStart="5dp"
-        android:paddingEnd = "5dp"
-        android:id="@+id/descriptionTV"
-        />
+        android:paddingEnd="5dp"
+        android:textSize="20sp"
+        android:textColor="@color/colorBlack"
+        android:id="@+id/descriptionTV"/>
 </RelativeLayout>

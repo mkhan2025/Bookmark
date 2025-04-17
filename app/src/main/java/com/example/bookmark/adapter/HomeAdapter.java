@@ -65,7 +65,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
     @Override
     public void onBindViewHolder(@NonNull HomeHolder holder, int position) {
         int likeCount = list.get(position).getLikeCount();
-        holder.likeCountTV.setText(likeCount + " Likes");
+        holder.likeCountTV.setText(String.valueOf(likeCount));
         holder.usernameTV.setText(list.get(position).getName());
         Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
         checkBookmarkStatus(list.get(position).getId(), holder.bookmarkBtn);
@@ -100,7 +100,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                     FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
                             // Update the UI
                             post.setLikeCount(newLikes);
-                            holder.likeCountTV.setText(newLikes + " Likes");
+                            holder.likeCountTV.setText(String.valueOf(newLikes));
                             holder.likeCountTV.setVisibility(View.VISIBLE);
                         })
                         .addOnFailureListener(e -> {
@@ -116,7 +116,7 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                 FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
                             // Update the UI
                             post.setLikeCount(newLikes);
-                            holder.likeCountTV.setText(newLikes + " Likes");
+                            holder.likeCountTV.setText(String.valueOf(newLikes));
                             holder.likeCountTV.setVisibility(View.VISIBLE);
                         })
                         .addOnFailureListener(e -> {

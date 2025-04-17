@@ -182,7 +182,7 @@ public class Search extends Fragment {
                     Log.d("SearchFragment", "Is within radius: " + isWithinRadius);
                     
                     boolean matchesActivity = selectedActivityType.equals("All") || 
-                                            postActivity.equals(selectedActivityType);
+                                            (postActivity != null && postActivity.equals(selectedActivityType));
                     Log.d("SearchFragment", "Matches activity: " + matchesActivity);
                     
                     if (isWithinRadius && matchesActivity) {

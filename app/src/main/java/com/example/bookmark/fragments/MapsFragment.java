@@ -1,7 +1,9 @@
 package com.example.bookmark.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +32,17 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.material.slider.Slider;
 import android.Manifest;
 import android.util.Log;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.common.api.ResolvableApiException;
+import android.content.IntentSender;
+import android.app.Activity;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +61,7 @@ import com.example.bookmark.adapter.SpinnerAdapter;
 
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
+    private static final String TAG = "MapsFragment";
     private MapView mapView;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
@@ -57,17 +71,28 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private Map<String, LatLng> locationData = new HashMap<>();  // Stores locations
     // private Set<String> selectedActivities = new HashSet<>();
     private Map<String, String> postActivities = new HashMap<>();  // postId -> activityType
+    private static final int REQUEST_CHECK_SETTINGS = 100;
+    private LocationCallback locationCallback;
+    private LocationRequest locationRequest;
 
     public MapsFragment() {
         super(R.layout.fragment_maps);
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "MapsFragment onCreate called");
+    }
+
+    @Override
     public void onViewCreated(@NonNull android.view.View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG, "MapsFragment onViewCreated called");
         mapView = view.findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        Log.d(TAG, "MapView initialized and getMapAsync called");
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         slider = view.findViewById(R.id.radiusSlider);
         spinner = view.findViewById(R.id.activity_dropdown);
@@ -109,6 +134,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         public void onMapReady(@NonNull GoogleMap googleMap){
+            Log.d(TAG, "onMapReady called");
             this.googleMap = googleMap;
 
             Dexter.withContext(requireContext())
@@ -116,17 +142,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     .withListener(new PermissionListener() {
                         @Override
                         public void onPermissionGranted(PermissionGrantedResponse response) {
-                            enableUserLocation();
-                            loadBookmarkedLocations();
+                            Log.d(TAG, "Location permission granted");
+                            checkLocationSettings();
                         }
 
                         @Override
                         public void onPermissionDenied(PermissionDeniedResponse response) {
-                            // Handle permission denial (e.g., show a message)
+                            Log.e(TAG, "Location permission denied");
                         }
 
                         @Override
                         public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                            Log.d(TAG, "Showing permission rationale");
                             token.continuePermissionRequest();
                         }
                     }).check();
@@ -135,21 +162,105 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 //        googleMap.moveCamera(CameraUpdateFactory.newLatLng(harvard));
         }
     @SuppressLint("MissingPermission")
-    private void enableUserLocation () {
+    private void checkLocationSettings() {
+        Log.d(TAG, "checkLocationSettings called");
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5000); // Reduced interval for faster updates
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setSmallestDisplacement(10); // Update every 10 meters
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest)
+                .setAlwaysShow(true); // Show dialog even if location is already enabled
+
+        SettingsClient client = LocationServices.getSettingsClient(requireActivity());
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(requireActivity(), locationSettingsResponse -> {
+            Log.d(TAG, "Location settings are satisfied");
+            enableUserLocation();
+            loadBookmarkedLocations();
+        });
+
+        task.addOnFailureListener(requireActivity(), e -> {
+            Log.e(TAG, "Location settings are not satisfied: " + e.getMessage());
+            if (e instanceof ResolvableApiException) {
+                try {
+                    ResolvableApiException resolvable = (ResolvableApiException) e;
+                    resolvable.startResolutionForResult(requireActivity(),
+                            REQUEST_CHECK_SETTINGS);
+                } catch (IntentSender.SendIntentException sendEx) {
+                    Log.e(TAG, "Error showing location settings dialog", sendEx);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d(TAG, "User enabled location settings");
+                enableUserLocation();
+                loadBookmarkedLocations();
+            } else {
+                Log.e(TAG, "User did not enable location settings");
+                // You might want to show a message to the user here
+                Toast.makeText(requireContext(), "Location services are required for this feature", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void enableUserLocation() {
+        Log.d(TAG, "enableUserLocation called");
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Location permission not granted");
             return;
         }
 
-        googleMap.setMyLocationEnabled(true);
+        try {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            Log.d(TAG, "Location enabled on map");
 
-        // Get user's last known location
-        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-            if (location != null) {
-                LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                googleMap.addMarker(new MarkerOptions().position(userLatLng).title("You are here"));
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f));
-            }
-        });
+            // First try to get last known location
+            fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        Log.d(TAG, "Got last known location: " + location.getLatitude() + ", " + location.getLongitude());
+                        LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f));
+                    } else {
+                        Log.d(TAG, "Last known location is null, waiting for updates");
+                    }
+                });
+
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    if (locationResult == null) {
+                        Log.e(TAG, "Location result is null");
+                        return;
+                    }
+                    for (Location location : locationResult.getLocations()) {
+                        LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        Log.d(TAG, "Location updated: " + userLatLng.latitude + ", " + userLatLng.longitude + 
+                              " Accuracy: " + location.getAccuracy() + " Provider: " + location.getProvider());
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f));
+                    }
+                }
+            };
+
+            Log.d(TAG, "Requesting location updates");
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully requested location updates"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to request location updates: " + e.getMessage()));
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException in enableUserLocation: " + e.getMessage());
+        }
     }
         private void loadBookmarkedLocations () {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -275,8 +386,32 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void onResume () {
             super.onResume();
+            Log.d(TAG, "onResume called");
             if (mapView != null) {
                 mapView.onResume();
+            }
+            
+            // Check location settings again when fragment resumes
+            if (googleMap != null) {
+                Dexter.withContext(requireContext())
+                    .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    .withListener(new PermissionListener() {
+                        @Override
+                        public void onPermissionGranted(PermissionGrantedResponse response) {
+                            Log.d(TAG, "Location permission granted in onResume");
+                            checkLocationSettings();
+                        }
+
+                        @Override
+                        public void onPermissionDenied(PermissionDeniedResponse response) {
+                            Log.e(TAG, "Location permission denied in onResume");
+                        }
+
+                        @Override
+                        public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                            token.continuePermissionRequest();
+                        }
+                    }).check();
             }
         }
 
@@ -291,6 +426,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void onDestroy() {
             super.onDestroy();
+            if (fusedLocationClient != null && locationCallback != null) {
+                fusedLocationClient.removeLocationUpdates(locationCallback);
+            }
             if (mapView != null) {
                 mapView.onDestroy();
             }

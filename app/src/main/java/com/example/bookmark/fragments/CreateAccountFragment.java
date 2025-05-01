@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -163,8 +164,8 @@ public class CreateAccountFragment extends Fragment {
         map.put("email", email);
         map.put("profileImage", "");
         map.put("uid", user.getUid());
-        map.put("following", 0);
-        map.put("followers", 0);
+        map.put("following", new ArrayList<String>());
+        map.put("followers", new ArrayList<String>());
         map.put("bio", "");
 
 

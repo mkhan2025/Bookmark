@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -34,6 +35,7 @@ public class TrendingFragment extends Fragment {
     HomeAdapter adapter;
     private List<HomeModel> list;
     private HomeAdapter trendingAdapter;
+    private ImageButton backButton;
     DocumentReference reference;
     private ProgressBar progressBar;
 
@@ -52,6 +54,7 @@ public class TrendingFragment extends Fragment {
         Log.d("TrendingDebug", "onViewCreated started");
         super.onViewCreated(view, savedInstanceState);
         init(view);
+        clickListener();
         list = new ArrayList<>();
         if (getActivity() != null){
             Log.d("TrendingDebug", "getActivity() is not null");
@@ -62,6 +65,19 @@ public class TrendingFragment extends Fragment {
         loadTrendingData();
         }
 
+    }
+    private void clickListener(){
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                // Hide the mainFrameLayout first
+                View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                if (frameLayout != null) {
+                    frameLayout.setVisibility(View.GONE);
+                }
+                // Then pop the back stack
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
     }
     private void init(View view){
         Log.d("TrendingDebug", "init started");
@@ -84,6 +100,7 @@ public class TrendingFragment extends Fragment {
             Log.d("TrendingDebug", "ProgressBar initialized");
         }
         //need to do something with adapter
+        backButton = view.findViewById(R.id.backBtn);
     }
     private void loadTrendingData(){
         showLoading();

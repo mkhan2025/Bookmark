@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -41,6 +42,7 @@ public class LocalFragment extends Fragment {
     // HomeAdapter adapter;
     private List<HomeModel> list;
     private HomeAdapter localAdapter;
+    private ImageButton backButton;
     DocumentReference reference;
 
     public LocalFragment() {
@@ -55,6 +57,7 @@ public class LocalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         init(view);
+        clickListener();
         list = new ArrayList<>();
         localAdapter = new HomeAdapter(list, getActivity());
         recyclerView.setAdapter(localAdapter);
@@ -69,8 +72,21 @@ public class LocalFragment extends Fragment {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
         progressBar = view.findViewById(R.id.progressBar);
+        backButton = view.findViewById(R.id.backButton);
     }
-
+    public void clickListener() {
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                // Hide the mainFrameLayout first
+                View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                if (frameLayout != null) {
+                    frameLayout.setVisibility(View.GONE);
+                }
+                // Then pop the back stack
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
+    }
     public void loadLocalData() {
         showLoading();
         list.clear();

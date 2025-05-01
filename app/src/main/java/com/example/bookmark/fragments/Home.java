@@ -41,10 +41,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -143,6 +145,8 @@ public class Home extends Fragment {
     }
 
         private void clickListener () {
+            //adding click listener so that if a userName is clicked, the user will be redirected to the user's profile
+            
             localBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -244,7 +248,7 @@ public class Home extends Fragment {
             user = auth.getCurrentUser();
 
         }
-        private void loadDataFromFirestore () {
+        private void loadDataFromFirestore() {
             if (user == null) {
                 Log.e("FirestoreError", "User is null");
                 return;
@@ -253,33 +257,92 @@ public class Home extends Fragment {
             list.clear(); // Clear list before adding new data
             Log.d("HomeFragment", "Starting to load posts");
             Log.d("HomeFragment", "Current user ID: " + user.getUid());
-            CollectionReference collectionReference = FirebaseFirestore.getInstance()
-                    .collection("Users")
-                    .document(user.getUid())
-                    .collection("Post Images");
 
-            collectionReference.addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Log.e("FirestoreError", error.getMessage());
-                    return;
-                }
-
-                if (value == null || value.isEmpty()) {
-                    Log.e("FirestoreError", "No documents found");
-                    return;
-                }
-
-                for (QueryDocumentSnapshot snapshot : value) {
-                    if (!snapshot.exists()) {
+            // First get the current user's following list
+            FirebaseFirestore.getInstance()
+                .collection("Users")
+                .document(user.getUid())
+                .addSnapshotListener((documentSnapshot, error) -> {
+                    if (error != null) {
+                        Log.e("FirestoreError", "Error getting following list: " + error.getMessage());
                         return;
                     }
-                    HomeModel model = snapshot.toObject(HomeModel.class);
-                    Log.d("HomeFragment", "Post name: " + model.getName());
-                    list.add(new HomeModel(model.getUid(), model.getProfileImage(), model.getImageUrl(), model.getName(), model.getComment(), model.getDescription(), model.getId(), model.getLocationName(), model.getActivityType(), model.getLocalPostImage(), model.getLikeCount(), model.getLikedBy(), model.getLatitude(), model.getLongitude(), model.getTimestamp(), model.getTrendingScore()));
-                }
-                LIST_SIZE = list.size();
-                adapter.notifyDataSetChanged();
-            });
+
+                    if (documentSnapshot == null || !documentSnapshot.exists()) {
+                        Log.d("HomeFragment", "User document doesn't exist");
+                        return;
+                    }
+
+                    if (documentSnapshot.exists()) {
+                        Object followingObj = documentSnapshot.get("following");
+                        Log.d("FirestoreDebug", "Following field type: " + (followingObj != null ? followingObj.getClass().getName() : "null"));
+                        Log.d("FirestoreDebug", "Following field value: " + followingObj);
+                        
+                        List<String> following = new ArrayList<>();
+                        if (followingObj instanceof List) {
+                            following = (List<String>) followingObj;
+                            // Clean up empty strings
+                            following.removeIf(String::isEmpty);
+                            Log.d("HomeFragment", "Cleaned following list: " + following);
+                        }
+
+                        if (following.isEmpty()) {
+                            Log.d("HomeFragment", "No users being followed");
+                            adapter.notifyDataSetChanged();
+                            return;
+                        }
+
+                        // For each user being followed, get their posts
+                        for (String followedUserId : following) {
+                            if (followedUserId == null || followedUserId.isEmpty()) {
+                                Log.d("HomeFragment", "Skipping null or empty user ID");
+                                continue;
+                            }
+                            
+                            Log.d("HomeFragment", "Loading posts for user: " + followedUserId);
+                            FirebaseFirestore.getInstance()
+                                .collection("Users")
+                                .document(followedUserId)
+                                .collection("Post Images")
+                                .orderBy("timestamp", Query.Direction.DESCENDING)
+                                .limit(20)
+                                .addSnapshotListener((value, error1) -> {
+                                    if (error1 != null) {
+                                        Log.e("FirestoreError", "Error loading posts for user " + followedUserId + ": " + error1.getMessage());
+                                        return;
+                                    }
+
+                                    if (value == null || value.isEmpty()) {
+                                        Log.d("HomeFragment", "No posts found for user: " + followedUserId);
+                                        return;
+                                    }
+
+                                    Log.d("HomeFragment", "Found " + value.size() + " posts for user: " + followedUserId);
+                                    for (QueryDocumentSnapshot snapshot : value) {
+                                        if (!snapshot.exists()) {
+                                            continue;
+                                        }
+                                        HomeModel model = snapshot.toObject(HomeModel.class);
+                                        // Make sure we don't add duplicate posts
+                                        if (!list.contains(model)) {
+                                            list.add(model);
+                                            Log.d("HomeFragment", "Added post: " + model.getId() + " from user: " + followedUserId);
+                                        }
+                                    }
+
+                                    // Sort all posts by timestamp
+                                    Collections.sort(list, (o1, o2) -> {
+                                        // Since timestamp is a long primitive, we don't need null check
+                                        return Long.compare(o2.getTimestamp(), o1.getTimestamp());
+                                    });
+
+                                    LIST_SIZE = list.size();
+                                    Log.d("HomeFragment", "Total posts in feed: " + LIST_SIZE);
+                                    adapter.notifyDataSetChanged();
+                                });
+                        }
+                    }
+                });
         }
         private void loadBookmarksFromFirestore () {
             if (user == null) {

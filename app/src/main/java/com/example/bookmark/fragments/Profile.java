@@ -54,6 +54,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -61,7 +62,9 @@ import com.google.firebase.storage.UploadTask;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -81,7 +84,8 @@ public class Profile extends Fragment {
     boolean isMyProfile = true;
     private ImageButton editProfileBtn;
     ImageView bookmarkBtn; 
-    String uid;
+    String currentUserId;  // The ID of the current user viewing the profile
+    String profileUserId;  // The ID of the profile being viewed
     private Uri imageUri;
     //FirestoreRecyclerAdapter is a class that is used to get the post images from the Firestore database and display the user's posts in a grid. 
     FirestoreRecyclerAdapter adapter;
@@ -111,13 +115,76 @@ public class Profile extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("ProfileDebug", "onViewCreated - profileUserId: " + profileUserId);
         init(view);
-        if (isMyProfile)
-        {
+        
+        // Test follow functionality
+        String testUserId = "QZiluGdKbqesEDAXtI4PEssI3Mg2";
+        
+        // First get the current following list
+        FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> following = (List<String>) documentSnapshot.get("following");
+                    if (following == null) {
+                        following = new ArrayList<>();
+                    }
+                    
+                    // Clean up any empty strings
+                    following.removeIf(String::isEmpty);
+                    
+                    // Add the test user if not already following
+                    if (!following.contains(testUserId)) {
+                        following.add(testUserId);
+                        
+                        // Update both users' documents
+                        FirebaseFirestore.getInstance()
+                            .collection("Users")
+                            .document(user.getUid())
+                            .update("following", following)
+                            .addOnSuccessListener(aVoid -> {
+                                // Update the other user's followers
+                                FirebaseFirestore.getInstance()
+                                    .collection("Users")
+                                    .document(testUserId)
+                                    .get()
+                                    .addOnSuccessListener(testUserDoc -> {
+                                        List<String> followers = (List<String>) testUserDoc.get("followers");
+                                        if (followers == null) {
+                                            followers = new ArrayList<>();
+                                        }
+                                        followers.removeIf(String::isEmpty);
+                                        
+                                        if (!followers.contains(user.getUid())) {
+                                            followers.add(user.getUid());
+                                            FirebaseFirestore.getInstance()
+                                                .collection("Users")
+                                                .document(testUserId)
+                                                .update("followers", followers)
+                                                .addOnSuccessListener(aVoid1 -> {
+                                                    Log.d("FollowTest", "Successfully followed user: " + testUserId);
+                                                    Toast.makeText(getContext(), "Followed test user", Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e("FollowTest", "Error updating followers: " + e.getMessage());
+                                                });
+                                        }
+                                    });
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("FollowTest", "Error updating following: " + e.getMessage());
+                            });
+                    }
+                }
+            });
+
+        if (isMyProfile) {
             followBtn.setVisibility(View.GONE);
             countLayout.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             followBtn.setVisibility(View.VISIBLE);
             countLayout.setVisibility(View.GONE);
         }
@@ -140,13 +207,38 @@ public class Profile extends Fragment {
 
     }
 
-    private void init(View view){
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // Initialize Firebase Auth first
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+        currentUserId = user.getUid();
+        
+        // By default, show current user's profile
+        profileUserId = currentUserId;
+        isMyProfile = true;
+        
+        // Check if we're viewing a different user's profile
+        if (getArguments() != null) {
+            String userId = getArguments().getString("userId");
+            Log.d("ProfileDebug", "Received user ID in onCreate: " + userId);
+            
+            if (userId != null) {
+                profileUserId = userId;
+                isMyProfile = userId.equals(currentUserId);
+                Log.d("ProfileDebug", "isMyProfile set to: " + isMyProfile);
+            }
+        } else {
+            Log.d("ProfileDebug", "No arguments received, showing current user's profile");
+        }
+    }
 
-//        Toolbar toolbar = view.findViewById(R.id.toolbar);
-//        if (getActivity() != null)
-//        {
-//            ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
-//        }
+    private void init(View view){
+        Log.d("ProfileDebug", "init - Starting initialization");
+        Log.d("ProfileDebug", "init - Current profileUserId: " + profileUserId);
+        
         bookmarkBtn = view.findViewById(R.id.bookmarkBtn);
         bookmarkBtn.setOnClickListener(v -> {
             Log.d("Profile", "Bookmark button clicked");
@@ -154,7 +246,6 @@ public class Profile extends Fragment {
             viewPager.setCurrentItem(1);  // Switch to Bookmarks tab (index 1)
         });
         nameTV = view.findViewById(R.id.nameTV);
-//        toolbarNameTV = view.findViewById(R.id.toolbarNameTV);
         bioTV = view.findViewById(R.id.bioTV);
         countLayout = view.findViewById(R.id.countLayout);
 
@@ -168,43 +259,216 @@ public class Profile extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         editProfileBtn = view.findViewById(R.id.edit_profileImage);
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-}
+        setUpFollowButton();
+    }
+    private void setUpFollowButton() {
+        if (user == null) {
+            Log.e("ProfileError", "User is null");
+            return;
+        }
 
+        // Hide follow button if it's the user's own profile
+        if (user.getUid().equals(profileUserId)) {
+            followBtn.setVisibility(View.GONE);
+            return;
+        }
+
+        followBtn.setVisibility(View.VISIBLE);
+        followBtn.setEnabled(false); // Disable button while loading
+
+        // Check if current user is following this profile
+        FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(user.getUid())
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> following = (List<String>) documentSnapshot.get("following");
+                    if (following != null && following.contains(profileUserId)) {
+                        followBtn.setText("Following");
+                        followBtn.setBackgroundColor(getResources().getColor(R.color.colorBlack));
+                    } else {
+                        followBtn.setText("Follow");
+                        followBtn.setBackgroundColor(getResources().getColor(R.color.colorBlack));
+                    }
+                }
+                followBtn.setEnabled(true);
+            })
+            .addOnFailureListener(e -> {
+                Log.e("ProfileError", "Error checking follow status: " + e.getMessage());
+                followBtn.setEnabled(true);
+            });
+
+        followBtn.setOnClickListener(v -> {
+            followBtn.setEnabled(false);
+            FirebaseFirestore.getInstance()
+                .collection("Users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> following = (List<String>) documentSnapshot.get("following");
+                        if (following == null) {
+                            following = new ArrayList<>();
+                        }
+
+                        if (following.contains(profileUserId)) {
+                            // Unfollow
+                            FirebaseFirestore.getInstance()
+                                .collection("Users")
+                                .document(user.getUid())
+                                .update("following", FieldValue.arrayRemove(profileUserId))
+                                .addOnSuccessListener(aVoid -> {
+                                    FirebaseFirestore.getInstance()
+                                        .collection("Users")
+                                        .document(profileUserId)
+                                        .update("followers", FieldValue.arrayRemove(user.getUid()))
+                                        .addOnSuccessListener(aVoid1 -> {
+                                            followBtn.setText("Follow");
+                                            followBtn.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                                            updateFollowersCount();
+                                            followBtn.setEnabled(true);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e("ProfileError", "Error updating followers: " + e.getMessage());
+                                            followBtn.setEnabled(true);
+                                        });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("ProfileError", "Error updating following: " + e.getMessage());
+                                    followBtn.setEnabled(true);
+                                });
+                        } else {
+                            // Follow
+                            FirebaseFirestore.getInstance()
+                                .collection("Users")
+                                .document(user.getUid())
+                                .update("following", FieldValue.arrayUnion(profileUserId))
+                                .addOnSuccessListener(aVoid -> {
+                                    FirebaseFirestore.getInstance()
+                                        .collection("Users")
+                                        .document(profileUserId)
+                                        .update("followers", FieldValue.arrayUnion(user.getUid()))
+                                        .addOnSuccessListener(aVoid1 -> {
+                                            followBtn.setText("Following");
+                                            followBtn.setBackgroundColor(getResources().getColor(R.color.colorBlack));
+                                            updateFollowersCount();
+                                            followBtn.setEnabled(true);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e("ProfileError", "Error updating followers: " + e.getMessage());
+                                            followBtn.setEnabled(true);
+                                        });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("ProfileError", "Error updating following: " + e.getMessage());
+                                    followBtn.setEnabled(true);
+                                });
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ProfileError", "Error checking follow status: " + e.getMessage());
+                    followBtn.setEnabled(true);
+                });
+        });
+    }
+
+    private void updateFollowersCount() {
+        FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(profileUserId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> followers = (List<String>) documentSnapshot.get("followers");
+                    Log.d("ProfileDebug", "UpdateFollowersCount - Followers array: " + followers);
+                    int count = followers != null ? followers.size() : 0;
+                    Log.d("ProfileDebug", "UpdateFollowersCount - Setting count to: " + count);
+                    followersCountTV.setText(String.valueOf(count));
+                }
+            });
+    }
 
     private void getBasicData(){
+        Log.d("ProfileDebug", "getBasicData - Starting with profileUserId: " + profileUserId);
         DocumentReference userRef = FirebaseFirestore.getInstance().collection("Users")
-                .document(user.getUid());
+                .document(profileUserId);
+        Log.d("ProfileDebug", "getBasicData - Created reference for user: " + profileUserId);
         userRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                if (error != null)
-                {
-                   return;
+                if (error != null) {
+                    Log.e("ProfileError", "Error getting user data: " + error.getMessage());
+                    return;
                 }
-                assert value != null;
-                if (value.exists())
-                {
+                if (value != null && value.exists()) {
+                    Log.d("ProfileDebug", "getBasicData - Successfully loaded data for user: " + profileUserId);
                     String name = value.getString("name");
                     String bio = value.getString("bio");
-                    int following = value.getLong("following").intValue();
-                    int followers = value.getLong("followers").intValue();
+                    
+                    // Get following and followers as lists
+                    List<String> followingList = (List<String>) value.get("following");
+                    List<String> followersList = (List<String>) value.get("followers");
+                    
+                    // Clean up empty strings
+                    if (followingList != null) {
+                        followingList.removeIf(String::isEmpty);
+                    }
+                    if (followersList != null) {
+                        followersList.removeIf(String::isEmpty);
+                    }
+                    
+                    // Log the arrays after cleanup
+                    Log.d("ProfileDebug", "Following array after cleanup: " + followingList);
+                    Log.d("ProfileDebug", "Followers array after cleanup: " + followersList);
+                    
+                    // Convert to counts
+                    int following = followingList != null ? followingList.size() : 0;
+                    int followers = followersList != null ? followersList.size() : 0;
+                    
+                    // Log the counts before setting
+                    Log.d("ProfileDebug", "Following count: " + following);
+                    Log.d("ProfileDebug", "Followers count: " + followers);
+                    
                     final String profileURL = value.getString("profileImage");
-            // Update UI with retrieved data
+                    
+                    // Update UI with retrieved data
                     nameTV.setText(name);
-//                    toolbarNameTV.setText(name);
                     bioTV.setText(bio);
                     followersCountTV.setText(String.valueOf(followers));
                     followingCountTV.setText(String.valueOf(following));
-            // Load profile image
-                    Glide.with(getContext().getApplicationContext()).load(profileURL).placeholder(R.drawable.girl).timeout(6500).into(profilePic);
+                    
+                    // Log after setting
+                    Log.d("ProfileDebug", "Set following count TV to: " + followingCountTV.getText());
+                    Log.d("ProfileDebug", "Set followers count TV to: " + followersCountTV.getText());
+                    
+                    // Load profile image
+                    if (profileURL != null && !profileURL.isEmpty()) {
+                        Glide.with(getContext().getApplicationContext())
+                            .load(profileURL)
+                            .placeholder(R.drawable.girl)
+                            .timeout(6500)
+                            .into(profilePic);
+                    }
 
-
+                    // Count the user's posts
+                    userRef.collection("Post Images")
+                        .get()
+                        .addOnSuccessListener(querySnapshot -> {
+                            int postCount = querySnapshot.size();
+                            postCountTV.setText(String.valueOf(postCount));
+                            Log.d("Profile", "User has " + postCount + " posts");
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("ProfileError", "Error counting posts: " + e.getMessage());
+                            postCountTV.setText("0");
+                        });
+                } else {
+                    Log.d("ProfileDebug", "getBasicData - No data found for user: " + profileUserId);
                 }
             }
         });
-        postCountTV.setText(""+ LIST_SIZE);
     }
 
 
@@ -249,14 +513,9 @@ public class Profile extends Fragment {
                 });
     }
     private void loadPostImages(){
-        if (isMyProfile)
-        {
-            uid = user.getUid();
-        }
-        else {
-
-        }
-        DocumentReference reference = FirebaseFirestore.getInstance().collection("Users").document(uid);
+        DocumentReference reference = FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(profileUserId);
 
         Query query = reference.collection("Post Images");
         FirestoreRecyclerOptions<PostImageModel> options = new FirestoreRecyclerOptions.Builder<PostImageModel>()
@@ -276,7 +535,6 @@ public class Profile extends Fragment {
                         .load(model.getImageUrl())
                         .timeout(6500)
                         .into(holder.imageView);
-
             }
         };
     }

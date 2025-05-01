@@ -3,6 +3,7 @@ package com.example.bookmark.adapter;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +16,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.helper.widget.Layer;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.bookmark.R;
+import com.example.bookmark.fragments.Profile;
 import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.CommentModel;
 import com.example.bookmark.model.HomeModel;
@@ -80,6 +84,36 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.activityTypeTV.setText(list.get(position).getActivityType());
 
+        holder.usernameTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("HomeAdapter", "Username clicked: " + list.get(position).getName());
+                HomeModel post = list.get(position); 
+                String postOwnerId = post.getUid();
+                Log.d("HomeAdapter", "Post owner ID: " + postOwnerId);
+                
+                Profile profileFragment = new Profile();
+                Bundle bundle = new Bundle();
+                bundle.putString("userId", postOwnerId);
+                profileFragment.setArguments(bundle);
+                Log.d("HomeAdapter", "Created Profile fragment with user ID: " + postOwnerId);
+
+                // Make sure mainFrameLayout is visible
+                View frameLayout = ((FragmentActivity) context).findViewById(R.id.mainFrameLayout);
+                if (frameLayout != null) {
+                    frameLayout.setVisibility(View.VISIBLE);
+                    Log.d("HomeAdapter", "Set mainFrameLayout visibility to VISIBLE");
+                } else {
+                    Log.e("HomeAdapter", "mainFrameLayout not found");
+                }
+
+                FragmentTransaction transaction = ((FragmentActivity) context).getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.mainFrameLayout, profileFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                Log.d("HomeAdapter", "Fragment transaction committed");
+            }
+        }); 
 
         holder.likeBtn.setOnClickListener(new View.OnClickListener() {
 

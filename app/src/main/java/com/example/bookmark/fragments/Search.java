@@ -16,12 +16,15 @@ import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.example.bookmark.R;
 import com.example.bookmark.adapter.HomeAdapter;
 import com.example.bookmark.adapter.SpinnerAdapter;
+import com.example.bookmark.adapter.UserSearchAdapter;
 import com.example.bookmark.model.HomeModel;
 import com.example.bookmark.model.SpinnerModel;
+import com.example.bookmark.model.UserModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -42,10 +45,12 @@ public class Search extends Fragment {
     private double latitude;
     private double longitude;
     private RecyclerView recyclerView;
+    private RecyclerView userRecyclerView;
     private ProgressBar progressBar;
     private HomeAdapter searchAdapter;
     private SpinnerAdapter spinnerAdapter;
     private List<HomeModel> list;
+    private List<UserModel> userList;
     private FrameLayout frameLayout;
     DocumentReference reference;
     FirebaseUser user;
@@ -54,6 +59,8 @@ public class Search extends Fragment {
     private Map<String, String> postActivities = new HashMap<>();
     private String selectedActivity = "All";  // Add this as a class field
     private static final String TAG = "SearchFragment";
+    private UserSearchAdapter userSearchAdapter;
+    private TextView noResultsText;
 
 
     public Search() {
@@ -85,15 +92,43 @@ public class Search extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-                Log.d("SearchFragment", "onViewCreated called");
+        Log.d("SearchFragment", "onViewCreated called");
 
         init(view);
-        list = new ArrayList<>();
-        searchAdapter = new HomeAdapter(list, getActivity());
-        recyclerView.setAdapter(searchAdapter);
-        setUpActivityDropdown();
-        showLoading();
-        loadSearchData();
+        
+        // Check if we have user search results
+        if (getArguments() != null) {
+            Log.d("SearchFragment", "Found arguments in bundle");
+            if (getArguments().containsKey("userResults")) {
+                Log.d("SearchFragment", "Found userResults key in arguments");
+                userList = (List<UserModel>) getArguments().getSerializable("userResults");
+                if (userList != null) {
+                    Log.d("SearchFragment", "User list size: " + userList.size());
+                    for (UserModel user : userList) {
+                        Log.d("SearchFragment", "User in list: " + user.getName());
+                    }
+                    if (!userList.isEmpty()) {
+                        Log.d("SearchFragment", "Showing user results");
+                        showUserResults();
+                    } else {
+                        Log.d("SearchFragment", "User list is empty");
+                        showNoResults();
+                    }
+                } else {
+                    Log.d("SearchFragment", "User list is null");
+                    showNoResults();
+                }
+            } else if (getArguments().containsKey("placeId")) {
+                Log.d("SearchFragment", "Found place search parameters");
+                loadSearchData();
+            } else {
+                Log.d("SearchFragment", "No search parameters found in arguments");
+                showNoResults();
+            }
+        } else {
+            Log.d("SearchFragment", "No arguments found");
+            showNoResults();
+        }
     }
     public void setUpActivityDropdown(){
                 Log.d("SearchFragment", "Setting up activity dropdown");
@@ -125,15 +160,39 @@ public class Search extends Fragment {
     }
 
     public void init(View view) {
-                Log.d("SearchFragment", "init called");
-        recyclerView = view.findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-         auth = FirebaseAuth.getInstance();
-         user = auth.getCurrentUser();
-        progressBar = view.findViewById(R.id.progressBar);
-        activityDropdown = view.findViewById(R.id.activity_dropdown);
-        frameLayout = view.findViewById(R.id.frameLayout);
+        Log.d("SearchFragment", "init called");
+        try {
+            recyclerView = view.findViewById(R.id.recyclerView);
+            userRecyclerView = view.findViewById(R.id.userRecyclerView);
+            noResultsText = view.findViewById(R.id.noResultsText);
+            progressBar = view.findViewById(R.id.progressBar);
+            auth = FirebaseAuth.getInstance();
+            user = auth.getCurrentUser();
+            activityDropdown = view.findViewById(R.id.activity_dropdown);
+            frameLayout = view.findViewById(R.id.frameLayout);
+            
+            Log.d("SearchFragment", "Views initialized: " +
+                "recyclerView=" + (recyclerView != null) + ", " +
+                "userRecyclerView=" + (userRecyclerView != null) + ", " +
+                "noResultsText=" + (noResultsText != null) + ", " +
+                "progressBar=" + (progressBar != null) + ", " +
+                "activityDropdown=" + (activityDropdown != null) + ", " +
+                "frameLayout=" + (frameLayout != null));
+            
+            list = new ArrayList<>();
+            userList = new ArrayList<>();
+            
+            searchAdapter = new HomeAdapter(list, getActivity());
+            userSearchAdapter = new UserSearchAdapter(userList, getActivity());
+            
+            recyclerView.setAdapter(searchAdapter);
+            userRecyclerView.setAdapter(userSearchAdapter);
+            
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            userRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        } catch (Exception e) {
+            Log.e("SearchFragment", "Error in init: " + e.getMessage(), e);
+        }
     }
     public void loadSearchData() {
         Log.d("SearchFragment", "loadSearchData called");
@@ -252,6 +311,45 @@ public class Search extends Fragment {
                 Log.d("SearchFragment", "Hiding loading");
         if (progressBar != null) {
             progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    private void showUserResults() {
+        Log.d("SearchFragment", "showUserResults called");
+        if (userRecyclerView != null) {
+            // Hide place search UI elements
+            activityDropdown.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.GONE);
+            
+            // Show user search UI elements
+            userRecyclerView.setVisibility(View.VISIBLE);
+            frameLayout.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+            noResultsText.setVisibility(View.GONE);
+            
+            // Update adapter with user results
+            try {
+                userSearchAdapter.updateList(userList);
+                Log.d("SearchFragment", "User results adapter updated with " + userList.size() + " items");
+            } catch (Exception e) {
+                Log.e("SearchFragment", "Error updating user search adapter: " + e.getMessage(), e);
+                showNoResults();
+            }
+        } else {
+            Log.e("SearchFragment", "userRecyclerView is null");
+            showNoResults();
+        }
+    }
+
+    private void showNoResults() {
+        Log.d("SearchFragment", "showNoResults called");
+        if (frameLayout != null && noResultsText != null) {
+            frameLayout.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
+            noResultsText.setVisibility(View.VISIBLE);
+            activityDropdown.setVisibility(View.GONE);
+        } else {
+            Log.e("SearchFragment", "Required views are null");
         }
     }
 }

@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     //empty space where the app content will go
     private ViewPager viewPager;
-//    private static PlacesClient placesClient;  // Make it static so it can be accessed from other classes
-
     PagerAdapter pagerAdapter;
     //intiating curr firebase user 
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -72,14 +70,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         viewPager = findViewById(R.id.viewPager);
         tabLayout = findViewById(R.id.tabLayout);
-
-
     }
     private void addTabs(){
         Log.d(TAG, "addTabs called");
         tabLayout.setTabGravity(TabLayout.GRAVITY_CENTER);
         tabLayout.setTabMode(TabLayout.MODE_FIXED);
-
 
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.home));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.bookmark));
@@ -88,25 +83,10 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.test));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.maps));
 
-
-
-
         pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(pagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//
-//        // Set the toolbar visibility listener
-//        pagerAdapter.setToolbarVisibilityListener(isVisible -> {
-//            if (isVisible) {
-//                toolbar.setVisibility(View.VISIBLE);
-//            } else {
-//                toolbar.setVisibility(View.GONE);
-//            }
-//        });
 
-//By default tab icon
-        //new stuff
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
@@ -116,24 +96,18 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(4).setIcon(R.drawable.profile_outline);
         tabLayout.getTabAt(5).setIcon(R.drawable.maps);
 
-
-
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
 
-
-// Add this: Hide mainFrameLayout when switching tabs
                 View frameLayout = findViewById(R.id.mainFrameLayout);
                 if (frameLayout != null && frameLayout.getVisibility() == View.VISIBLE) {
                     frameLayout.setVisibility(View.GONE);
-                    // Clear back stack when switching tabs
                     getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 
                 switch(tab.getPosition()){
-
                     case 0:
                         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
                         break;
@@ -145,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 3:
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart_fill);
-//                        tab.setIcon(R.drawable.heart_fill);
                         break;
                     case 4:
                         tabLayout.getTabAt(4).setIcon(R.drawable.test);
@@ -159,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
                 switch(tab.getPosition()){
-
                     case 0:
                         tabLayout.getTabAt(0).setIcon(R.drawable.home);
                         break;
@@ -171,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 3:
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart);
-//                        tab.setIcon(R.drawable.heart_fill);
                         break;
                     case 4:
                         tabLayout.getTabAt(4).setIcon(R.drawable.profile_outline);
@@ -179,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
                     case 5:
                         tabLayout.getTabAt(5).setIcon(R.drawable.maps);
                         break;
-
                 }
             }
 
@@ -197,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 3:
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart_fill);
-//                        tab.setIcon(R.drawable.heart_fill);
                         break;
                     case 4:
                         tabLayout.getTabAt(4).setIcon(R.drawable.test);
@@ -205,13 +174,8 @@ public class MainActivity extends AppCompatActivity {
                     case 5:
                         tabLayout.getTabAt(5).setIcon(R.drawable.maps_fill);
                         break;
-
                 }
             }
         });
-
     }
-
-
-
 }

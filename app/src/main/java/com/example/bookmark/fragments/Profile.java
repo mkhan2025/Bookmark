@@ -115,7 +115,30 @@ public class Profile extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d("ProfileDebug", "onViewCreated - profileUserId: " + profileUserId);
+        Log.d("ProfileFragment", "onViewCreated called");
+        
+        // Log the view hierarchy
+        Log.d("ProfileFragment", "View hierarchy: " + view.getClass().getSimpleName());
+        
+        // Log TextView states
+        nameTV = view.findViewById(R.id.nameTV);
+        Log.d("ProfileFragment", "nameTV found: " + (nameTV != null));
+        if (nameTV != null) {
+            Log.d("ProfileFragment", "nameTV visibility: " + nameTV.getVisibility());
+            Log.d("ProfileFragment", "nameTV text: " + nameTV.getText());
+            Log.d("ProfileFragment", "nameTV width: " + nameTV.getWidth());
+            Log.d("ProfileFragment", "nameTV height: " + nameTV.getHeight());
+        }
+        
+        // Log parent layout states
+        ViewGroup parent = (ViewGroup) nameTV.getParent();
+        if (parent != null) {
+            Log.d("ProfileFragment", "Parent layout: " + parent.getClass().getSimpleName());
+            Log.d("ProfileFragment", "Parent visibility: " + parent.getVisibility());
+            Log.d("ProfileFragment", "Parent width: " + parent.getWidth());
+            Log.d("ProfileFragment", "Parent height: " + parent.getHeight());
+        }
+        
         init(view);
         
         // Test follow functionality
@@ -440,6 +463,7 @@ public class Profile extends Fragment {
                     followingCountTV.setText(String.valueOf(following));
                     
                     // Log after setting
+                    Log.d("ProfileDebug", "Set name to" + nameTV.getText());
                     Log.d("ProfileDebug", "Set following count TV to: " + followingCountTV.getText());
                     Log.d("ProfileDebug", "Set followers count TV to: " + followersCountTV.getText());
                     

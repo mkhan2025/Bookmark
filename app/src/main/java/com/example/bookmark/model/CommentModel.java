@@ -3,9 +3,12 @@ package com.example.bookmark.model;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.io.Serializable;
+
 
 //CommentModel is the data class that represents the comment object
-public class CommentModel {
+public class CommentModel implements Serializable {
+    private static final long serialVersionUID = 1L; 
     private String comment, uid, username, profileImage;
     private Date timestamp;
 

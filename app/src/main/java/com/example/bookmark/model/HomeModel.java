@@ -2,8 +2,11 @@ package com.example.bookmark.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
+import java.util.Date;
 
-public class HomeModel {
+public class HomeModel implements Serializable {
+    private static final long serialVersionUID = 1L;  // Add this line
     private String uid, profileImage, imageUrl, name, comment, description, id, locationName, activityType;
     private float trendingScore; 
     private long timestamp; 

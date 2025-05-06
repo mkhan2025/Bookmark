@@ -40,6 +40,7 @@ import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
 import com.example.bookmark.R;
 import com.example.bookmark.adapter.PagerAdapter;
+import com.example.bookmark.model.HomeModel;
 import com.example.bookmark.model.PostImageModel;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
@@ -68,8 +69,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
-
+import java.io.Serializable;
 public class Profile extends Fragment {
 
     //add toolbarName
@@ -535,7 +535,31 @@ public class Profile extends Fragment {
                         .load(model.getImageUrl())
                         .timeout(6500)
                         .into(holder.imageView);
+                
+                holder.imageView.setOnClickListener(v -> {
+                    FirebaseFirestore.getInstance().collection("Users").document(profileUserId).collection("Post Images").document(model.getId()).get().addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            HomeModel post = documentSnapshot.toObject(HomeModel.class);
+                            post.setUid(profileUserId);
+                            post.setId(model.getId());
+                            Home home = new Home(); 
+                            Bundle bundle = new Bundle(); 
+                            bundle.putSerializable("post", post);
+                            home.setArguments(bundle);
+
+                            View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                            if (frameLayout != null) {
+                                frameLayout.setVisibility(View.VISIBLE);
+                            }
+                            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                            transaction.replace(R.id.mainFrameLayout, home);
+                            transaction.addToBackStack(null).commit();
+                        }
+
+                    });
+                }); 
             }
+            
         };
     }
     @Override

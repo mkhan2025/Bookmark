@@ -71,6 +71,7 @@ public class Home extends Fragment {
     private RecyclerView recyclerView;
     private FirebaseUser user;
     HomeAdapter adapter;
+    private HomeModel singlePost; 
     private List<HomeModel> list;
     private List<BookmarksModel> bookmarksList;
     private ImageButton sendBtn;
@@ -89,6 +90,13 @@ public class Home extends Fragment {
     public Home() {
         // Required empty public constructor
     }
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            singlePost = (HomeModel) getArguments().getSerializable("post");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -106,7 +114,20 @@ public class Home extends Fragment {
         list = new ArrayList<>();
         adapter = new HomeAdapter(list, getActivity());
         recyclerView.setAdapter(adapter);
-        loadDataFromFirestore();
+        
+        if (getArguments() != null) {
+            singlePost = (HomeModel) getArguments().getSerializable("post");
+            if (singlePost != null) {
+                list.clear(); 
+                list.add(singlePost);
+                adapter.notifyDataSetChanged();
+            }
+        }
+        
+        else
+        {
+            loadDataFromFirestore();
+        }
         loadBookmarksFromFirestore();
         clickListener();
 
@@ -114,6 +135,7 @@ public class Home extends Fragment {
         String apiKey = "AIzaSyA7chOcKSTr-xNmL6bwz_Txw5LQABIzNC4";
         try {
             Places.initializeWithNewPlacesApiEnabled(getContext(), apiKey);
+            //places client is the client that will be used to search for places which in this case is the autocomplete fragment. 
             PlacesClient placesClient = Places.createClient(getContext());
             
             if (placesClient == null) {
@@ -121,6 +143,8 @@ public class Home extends Fragment {
                 return;
             }
             
+            //getChildFragmentManager is used to get the fragment manager of the parent fragment which in this case is the home fragment. 
+            //the role of the autocomplete fragment is to search for places and display them to the user. 
             autocompleteFragment = (AutocompleteSupportFragment)
                 getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
                 
@@ -145,6 +169,7 @@ public class Home extends Fragment {
                         search.setArguments(bundle);
 
                         View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                        //this is used to make sure that the mainFrameLayout is visible when the user selects a place. 
                         if (frameLayout != null) {
                             frameLayout.setVisibility(View.VISIBLE);
                         }
@@ -325,22 +350,22 @@ public class Home extends Fragment {
             });
 
             // Add text change listener for debugging
-            userSearchInput.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    Log.d("HomeFragment", "Before text changed: " + s);
-                }
+            // userSearchInput.addTextChangedListener(new TextWatcher() {
+            //     @Override
+            //     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            //         Log.d("HomeFragment", "Before text changed: " + s);
+            //     }
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    Log.d("HomeFragment", "Text changed to: " + s);
-                }
+            //     @Override
+            //     public void onTextChanged(CharSequence s, int start, int before, int count) {
+            //         Log.d("HomeFragment", "Text changed to: " + s);
+            //     }
 
-                @Override
-                public void afterTextChanged(Editable s) {
-                    Log.d("HomeFragment", "After text changed: " + s);
-                }
-            });
+            //     @Override
+            //     public void afterTextChanged(Editable s) {
+            //         Log.d("HomeFragment", "After text changed: " + s);
+            //     }
+            // });
         }
 
         private void searchUsers(String username) {
@@ -409,6 +434,8 @@ public class Home extends Fragment {
         }
 
         private void loadDataFromFirestore() {
+            Log.d("HomeFragment", "loadDataFromFirestore called");
+            
             if (user == null) {
                 Log.e("FirestoreError", "User is null");
                 return;

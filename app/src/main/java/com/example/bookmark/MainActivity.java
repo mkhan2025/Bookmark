@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.bookmark));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.add));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.heart));
-        tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.test));
+        tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.user));
         tabLayout.addTab(tabLayout.newTab().setIcon(R.drawable.maps));
 
         pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
         tabLayout.getTabAt(2).setIcon(R.drawable.add);
         tabLayout.getTabAt(3).setIcon(R.drawable.heart);
-        tabLayout.getTabAt(4).setIcon(R.drawable.profile_outline);
+        tabLayout.getTabAt(4).setIcon(R.drawable.user);
         tabLayout.getTabAt(5).setIcon(R.drawable.maps);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -105,10 +105,10 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(0).setIcon(R.drawable.home_fill);
                         break;
                     case 1:
-                        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
+                        tabLayout.getTabAt(1).setIcon(R.drawable.bookmark_fill);
                         break;
                     case 2:
-                        tabLayout.getTabAt(2).setIcon(R.drawable.add);
+                        tabLayout.getTabAt(2).setIcon(R.drawable.add_fill);
                         break;
                     case 3:
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart_fill);
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart);
                         break;
                     case 4:
-                        tabLayout.getTabAt(4).setIcon(R.drawable.profile_outline);
+                        tabLayout.getTabAt(4).setIcon(R.drawable.user);
                         break;
                     case 5:
                         tabLayout.getTabAt(5).setIcon(R.drawable.maps);
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                         tabLayout.getTabAt(1).setIcon(R.drawable.bookmark);
                         break;
                     case 2:
-                        tabLayout.getTabAt(2).setIcon(R.drawable.add);
+                        tabLayout.getTabAt(2).setIcon(R.drawable.add_fill);
                         break;
                     case 3:
                         tabLayout.getTabAt(3).setIcon(R.drawable.heart_fill);

@@ -5,17 +5,11 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.text.Editable;
-import android.text.InputFilter;
-import android.text.Spanned;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,7 +22,6 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.bookmark.R;
-import com.example.bookmark.ReplacerActivity;
 import com.example.bookmark.adapter.HomeAdapter;
 import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.HomeModel;
@@ -40,32 +33,20 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Query;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import androidx.navigation.Navigation;
-import androidx.navigation.NavController;
-import com.example.bookmark.MainActivity;
 
 public class Home extends Fragment {
     private RecyclerView recyclerView;

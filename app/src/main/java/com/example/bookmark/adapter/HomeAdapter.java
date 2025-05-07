@@ -1,8 +1,6 @@
 package com.example.bookmark.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.helper.widget.Layer;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -32,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -73,6 +71,15 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         holder.usernameTV.setText(list.get(position).getName());
         Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
         checkBookmarkStatus(list.get(position).getId(), holder.bookmarkBtn);
+
+        // Set initial like button state
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && list.get(position).getLikedBy().contains(currentUser.getUid())) {
+            holder.likeBtn.setImageDrawable(context.getDrawable(R.drawable.heart_fill));
+        } else {
+            holder.likeBtn.setImageDrawable(context.getDrawable(R.drawable.heart));
+        }
+
 //        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
         Glide.with(context.getApplicationContext())
@@ -82,7 +89,8 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
                 .into(holder.imageView);
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.descriptionTV.setText(list.get(position).getDescription());
-        holder.activityTypeTV.setText(list.get(position).getActivityType());
+        holder.activityTypeTV.setImageResource(R.drawable.profile_image);
+        setActivityTagStyle(holder.activityTypeTV, list.get(position).getActivityType());
 
         holder.usernameTV.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,48 +124,84 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         }); 
 
         holder.likeBtn.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
-                Log.d("Like","liked by button clicked");
-        
-                // String uid = list.get(position).getUid();
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser == null) {
+                    Toast.makeText(context, "Please login to like posts", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Log.d("LikeDebug", "Like button clicked for post: " + list.get(position).getId());
+                Log.d("LikeDebug", "Current user ID: " + currentUser.getUid());
+                Log.d("LikeDebug", "Current likedBy array: " + list.get(position).getLikedBy());
+                Log.d("LikeDebug", "Current like count: " + list.get(position).getLikeCount());
+
                 HomeModel post = list.get(position);
-                String uid = post.getUid();
+                String currentUserId = currentUser.getUid();
                 int currLikes = post.getLikeCount();
-                if(post.getLikedBy().contains(uid))
-                {
-                    holder.likeBtn.setImageResource(R.drawable.heart);
+
+                if(post.getLikedBy().contains(currentUserId)) {
+                    Log.d("LikeDebug", "User has already liked this post, proceeding to unlike");
+                    holder.likeBtn.setImageDrawable(context.getDrawable(R.drawable.heart));
                     int newLikes = currLikes - 1; 
-                    post.getLikedBy().remove(uid);
-                    //onSuccessListener is a callback that is called when the update is successful and aVoid is a void object
-                    FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
-                            // Update the UI
+                    post.getLikedBy().remove(currentUserId);
+                    
+                    FirebaseFirestore.getInstance()
+                        .collection("Users")
+                        .document(post.getUid())
+                        .collection("Post Images")
+                        .document(post.getId())
+                        .update(
+                            "likedBy", FieldValue.arrayRemove(currentUserId),
+                            "likeCount", FieldValue.increment(-1)
+                        )
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("LikeDebug", "Successfully removed like from Firestore");
                             post.setLikeCount(newLikes);
                             holder.likeCountTV.setText(String.valueOf(newLikes));
-                            holder.likeCountTV.setVisibility(View.VISIBLE);
+                            notifyDataSetChanged();
                         })
                         .addOnFailureListener(e -> {
+                            Log.e("LikeDebug", "Error removing like from Firestore: " + e.getMessage());
+                            // Revert local changes
+                            post.getLikedBy().add(currentUserId);
+                            post.setLikeCount(currLikes);
+                            holder.likeCountTV.setText(String.valueOf(currLikes));
+                            notifyDataSetChanged();
                             Toast.makeText(context, "Failed to unlike", Toast.LENGTH_SHORT).show();
                         });
-                    Log.d("Like","liked by finished");
-                }
-                else{
-                    //else statement is executed if the post is not liked by the user
-                holder.likeBtn.setImageResource(R.drawable.heart_fill);
-                int newLikes = currLikes + 1;
-                post.getLikedBy().add(uid);
-                FirebaseFirestore.getInstance().collection("Users").document(post.getUid()).collection("Post Images").document(post.getId()).update("likeCount", newLikes).addOnSuccessListener(aVoid -> {
-                            // Update the UI
+                } else {
+                    Log.d("LikeDebug", "User has not liked this post, proceeding to like");
+                    holder.likeBtn.setImageDrawable(context.getDrawable(R.drawable.heart_fill));
+                    int newLikes = currLikes + 1;
+                    post.getLikedBy().add(currentUserId);
+                    
+                    FirebaseFirestore.getInstance()
+                        .collection("Users")
+                        .document(post.getUid())
+                        .collection("Post Images")
+                        .document(post.getId())
+                        .update(
+                            "likedBy", FieldValue.arrayUnion(currentUserId),
+                            "likeCount", FieldValue.increment(1)
+                        )
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("LikeDebug", "Successfully added like to Firestore");
                             post.setLikeCount(newLikes);
                             holder.likeCountTV.setText(String.valueOf(newLikes));
-                            holder.likeCountTV.setVisibility(View.VISIBLE);
+                            notifyDataSetChanged();
                         })
                         .addOnFailureListener(e -> {
-                            Toast.makeText(context, "Failed to update likes", Toast.LENGTH_SHORT).show();
+                            Log.e("LikeDebug", "Error adding like to Firestore: " + e.getMessage());
+                            // Revert local changes
+                            post.getLikedBy().remove(currentUserId);
+                            post.setLikeCount(currLikes);
+                            holder.likeCountTV.setText(String.valueOf(currLikes));
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Failed to like", Toast.LENGTH_SHORT).show();
                         });
                 }
-            
             }
         });
                 holder.commentBtn.setOnClickListener(new View.OnClickListener() {
@@ -361,7 +405,7 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
                         // Remove bookmark
                         bookmarkRef.delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
+                                    holder.bookmarkBtn.setImageDrawable(context.getDrawable(R.drawable.bookmark_home));
                                     Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
                                 })
                                 .addOnFailureListener(e ->
@@ -378,7 +422,7 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
 
                         bookmarkRef.set(bookmark)
                                 .addOnSuccessListener(aVoid -> {
-                                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark_fill);
+                                    holder.bookmarkBtn.setImageDrawable(context.getDrawable(R.drawable.bookmark_home_fill));
                                     Toast.makeText(context, "Post bookmarked", Toast.LENGTH_SHORT).show();
                                 })
                                 .addOnFailureListener(e ->
@@ -392,26 +436,62 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         });
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.locationTV.setText(list.get(position).getLocationName());
-        holder.activityTypeTV.setText(list.get(position).getActivityType());
+        holder.activityTypeTV.setImageResource(R.drawable.profile_image);
+        setActivityTagStyle(holder.activityTypeTV, list.get(position).getActivityType());
 
     }
     private void checkBookmarkStatus(String postId, ImageView bookmarkBtn) {
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    if (user == null) return;
+            if (user == null) return;
 
-    FirebaseFirestore.getInstance()
-        .collection("Users")
-        .document(user.getUid())
-        .collection("Bookmarks")
-        .document(postId)
-        .get()
-        .addOnSuccessListener(documentSnapshot -> {
-            boolean isBookmarked = documentSnapshot.exists();
-//            bookmarkBtn.setImageResource(isBookmarked ?
-//                R.drawable.bookmark_fill : R.drawable.bookmark);
-            Log.d("isBookmarkedCheck","COMPLETED");
-        });
-}
+            FirebaseFirestore.getInstance()
+            .collection("Users")
+            .document(user.getUid())
+            .collection("Bookmarks")
+            .document(postId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                boolean isBookmarked = documentSnapshot.exists();
+                bookmarkBtn.setImageDrawable(context.getDrawable(isBookmarked ? 
+                    R.drawable.bookmark_home_fill : R.drawable.bookmark_home));
+                Log.d("isBookmarkedCheck", "Bookmark status: " + isBookmarked);
+            });
+    }
+
+    private void setActivityTagStyle(ImageView activityTV, String activityType) {
+        switch (activityType.toLowerCase()) {
+            case "nature and adventure":
+                activityTV.setImageResource(R.drawable.adventure);
+                break;
+            case "xultural & historical":
+                activityTV.setImageResource(R.drawable.cultural);
+                break;
+            case "food & drink":
+                activityTV.setImageResource(R.drawable.eating);
+                break;
+            case "events & entertainment":
+                activityTV.setImageResource(R.drawable.events);
+                break;
+            case "relaxation & wellness":
+                activityTV.setImageResource(R.drawable.wellness);
+                break;
+            case "shopping":
+                activityTV.setImageResource(R.drawable.shopping);
+                break;
+            case "indoor":
+                activityTV.setImageResource(R.drawable.indoor);
+                break;
+            case "outdoor":
+                activityTV.setImageResource(R.drawable.outdoor);
+                break;
+            case "transit":
+                activityTV.setImageResource(R.drawable.transit);
+                break;
+            default:
+                activityTV.setImageResource(R.drawable.profile_image);
+                break;
+        }
+    }
 
     @Override
     public int getItemCount() {
@@ -422,24 +502,19 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         private CircleImageView profilePic;
         private TextView usernameTV;
         private TextView locationTV;
-
-//        private TextView timeTV;
-
         private TextView likeCountTV;
         private TextView descriptionTV;
-        private TextView activityTypeTV;
+        private ImageView activityTypeTV;
         private ImageView imageView;
         private ImageButton likeBtn;
         private ImageButton commentBtn;
         private ImageButton shareBtn;
-
         private ImageButton bookmarkBtn;
 
         public HomeHolder(@NonNull View itemView) {
             super(itemView);
             profilePic = itemView.findViewById(R.id.profilePic);
             usernameTV = itemView.findViewById(R.id.usernameTV);
-//            timeTV = itemView.findViewById(R.id.timeTV);
             likeCountTV = itemView.findViewById(R.id.likeCountTV);
             imageView = itemView.findViewById(R.id.imageView);
             likeBtn = itemView.findViewById(R.id.likeBtn);
@@ -449,8 +524,6 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
             locationTV = itemView.findViewById(R.id.locationTV);
             activityTypeTV = itemView.findViewById(R.id.activityTV);
             commentBtn = itemView.findViewById(R.id.commentBtn);
-
-
         }
     }
 }

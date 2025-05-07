@@ -90,7 +90,7 @@ public class Add extends Fragment {
 
     //autocomplete widget prediction for location selection
     AutocompleteSupportFragment autocompleteFragment;
-    String [] activityType = {"Outdoor", "Indoor", "Adventure", "Eating", "Tourist"};
+    String [] activityType = {"Nature & Adventure", "Cultural & Historical", "Food & Drink", "Events & Entertainment", "Relaxation & Wellness", "Shopping", "Indoor", "Outdoor", "Transit"};
     //autocomplete widget prediction for activity type selection
     AutoCompleteTextView autoCompleteTextView;
     //ArrayAdapter is an adapter that is used to display the activity type in the dropdown

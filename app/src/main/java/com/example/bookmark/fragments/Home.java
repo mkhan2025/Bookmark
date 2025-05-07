@@ -75,8 +75,8 @@ public class Home extends Fragment {
     private List<HomeModel> list;
     private List<BookmarksModel> bookmarksList;
     private ImageButton sendBtn;
-    private Button trendingBtn;
-    private Button localBtn;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton trendingBtn;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton localBtn;
     DocumentReference reference;
     private Place selectedPlace;
     AutocompleteSupportFragment autocompleteFragment;
@@ -150,6 +150,7 @@ public class Home extends Fragment {
                 
             // Set up Places API
             autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+            autocompleteFragment.setHint("Search places");
             
             // Get the search container
             FrameLayout placesSearchContainer = view.findViewById(R.id.places_search_container);
@@ -277,14 +278,16 @@ public class Home extends Fragment {
         private void init (View view){
             Log.d("HomeFragment", "init called");
             recyclerView = view.findViewById(R.id.recyclerView);
-            localBtn = view.findViewById(R.id.localButton);
+            recyclerView.setHasFixedSize(true);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            user = FirebaseAuth.getInstance().getCurrentUser();
             trendingBtn = view.findViewById(R.id.trendingButton);
+            localBtn = view.findViewById(R.id.localButton);
+            reference = FirebaseFirestore.getInstance().collection("Users").document(user.getUid());
             auth = FirebaseAuth.getInstance();
-            user = auth.getCurrentUser();
             list = new ArrayList<>();
             adapter = new HomeAdapter(list, getActivity());
             recyclerView.setAdapter(adapter);
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
             // Initialize search containers
             FrameLayout placesSearchContainer = view.findViewById(R.id.places_search_container);

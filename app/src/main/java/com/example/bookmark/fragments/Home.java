@@ -15,17 +15,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.bookmark.R;
+import com.example.bookmark.model.SpinnerModel;
+import com.example.bookmark.adapter.SpinnerAdapter;
 import com.example.bookmark.adapter.HomeAdapter;
 import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.HomeModel;
 import com.example.bookmark.model.UserModel;
+import com.example.bookmark.utils.ActivityTypeMapper;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
@@ -61,6 +66,8 @@ public class Home extends Fragment {
     DocumentReference reference;
     private Place selectedPlace;
     AutocompleteSupportFragment autocompleteFragment;
+    private Spinner activityDropdown;
+    private String selectedActivityType = "All";
 
     Activity activity;
     public static int LIST_SIZE = 0;
@@ -270,6 +277,10 @@ public class Home extends Fragment {
             adapter = new HomeAdapter(list, getActivity());
             recyclerView.setAdapter(adapter);
 
+            // Initialize activity dropdown
+            activityDropdown = view.findViewById(R.id.activity_dropdown);
+            setupActivityDropdown();
+
             // Initialize search containers
             FrameLayout placesSearchContainer = view.findViewById(R.id.places_search_container);
             TextInputLayout userSearchContainer = view.findViewById(R.id.user_search_container);
@@ -350,6 +361,40 @@ public class Home extends Fragment {
             //         Log.d("HomeFragment", "After text changed: " + s);
             //     }
             // });
+        }
+
+        private void setupActivityDropdown() {
+            List<SpinnerModel> activityTypes = new ArrayList<>();
+            activityTypes.add(new SpinnerModel("All"));  // Add "All" first
+            activityTypes.add(new SpinnerModel("Nature & Adventure"));
+            activityTypes.add(new SpinnerModel("Cultural & Historical"));
+            activityTypes.add(new SpinnerModel("Food & Drink"));
+            activityTypes.add(new SpinnerModel("Events & Entertainment"));
+            activityTypes.add(new SpinnerModel("Relaxation & Wellness"));
+            activityTypes.add(new SpinnerModel("Shopping"));
+            activityTypes.add(new SpinnerModel("Indoor"));
+            activityTypes.add(new SpinnerModel("Outdoor"));
+            activityTypes.add(new SpinnerModel("Transit"));
+
+            SpinnerAdapter adapter = new SpinnerAdapter(activityTypes, requireContext());
+            activityDropdown.setAdapter(adapter);
+            activityDropdown.setSelection(0);  // Set "All" as default selection
+
+            activityDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    SpinnerModel selectedModel = (SpinnerModel) parent.getItemAtPosition(position);
+                    selectedActivityType = selectedModel.getActivityType();
+                    Log.d("HomeFragment", "Selected activity type: " + selectedActivityType);
+                    loadDataFromFirestore();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    selectedActivityType = "All";
+                    loadDataFromFirestore();
+                }
+            });
         }
 
         private void searchUsers(String username) {
@@ -494,16 +539,22 @@ public class Home extends Fragment {
                                             continue;
                                         }
                                         HomeModel model = snapshot.toObject(HomeModel.class);
-                                        // Make sure we don't add duplicate posts
-                                        if (!list.contains(model)) {
-                                            list.add(model);
-                                            Log.d("HomeFragment", "Added post: " + model.getId() + " from user: " + followedUserId);
+                                        String postActivityType = model.getActivityType();
+                                        String mappedActivityType = ActivityTypeMapper.mapOldToNewActivityType(postActivityType);
+                                        
+                                        // Only add posts that match the selected activity type or if "All" is selected
+                                        if (selectedActivityType.equals("All") || 
+                                            (mappedActivityType != null && mappedActivityType.equals(selectedActivityType))) {
+                                            // Make sure we don't add duplicate posts
+                                            if (!list.contains(model)) {
+                                                list.add(model);
+                                                Log.d("HomeFragment", "Added post: " + model.getId() + " from user: " + followedUserId);
+                                            }
                                         }
                                     }
 
                                     // Sort all posts by timestamp
                                     Collections.sort(list, (o1, o2) -> {
-                                        // Since timestamp is a long primitive, we don't need null check
                                         return Long.compare(o2.getTimestamp(), o1.getTimestamp());
                                     });
 

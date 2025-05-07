@@ -56,6 +56,7 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import com.example.bookmark.model.SpinnerModel;
 import com.example.bookmark.adapter.SpinnerAdapter;
+import com.example.bookmark.utils.ActivityTypeMapper;
 
 
 
@@ -106,11 +107,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             }
         });
         List<SpinnerModel> list = new ArrayList<>();
-        list.add(new SpinnerModel("Outdoor"));
+        list.add(new SpinnerModel("Nature & Adventure"));
+        list.add(new SpinnerModel("Cultural & Historical"));
+        list.add(new SpinnerModel("Food & Drink"));
+        list.add(new SpinnerModel("Events & Entertainment"));
+        list.add(new SpinnerModel("Relaxation & Wellness"));
+        list.add(new SpinnerModel("Shopping"));
         list.add(new SpinnerModel("Indoor"));
-        list.add(new SpinnerModel("Adventure"));
-        list.add(new SpinnerModel("Eating"));
-        list.add(new SpinnerModel("Tourist"));
+        list.add(new SpinnerModel("Outdoor"));
+        list.add(new SpinnerModel("Transit"));
         list.add(new SpinnerModel("All"));
         SpinnerAdapter adapter = new SpinnerAdapter(list, requireContext());
         spinner.setAdapter(adapter);
@@ -343,7 +348,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         Log.d("MapsDebug", "Marker created and stored. Total markers: " + markers.size());
     }
     private void updateMarkers(float radius, String selectedActivity) {
-            Log.d("MapsDebug", "Updating markers for radius: " + radius + ", Total markers: " + markers.size());
+        Log.d("MapsDebug", "Updating markers for radius: " + radius + ", Total markers: " + markers.size());
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -357,17 +362,17 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     double distance = calculateDistance(markerLocation.latitude, markerLocation.longitude, currentLocation.latitude, currentLocation.longitude);
                     Log.d("MapsDebug", "Marker " + postId + " distance: " + distance + " km");
                     String markerActivity = postActivities.get(postId);
-                     boolean isWithinRadius = distance <= radius;
-                boolean matchesActivity = selectedActivity.equals("All") || 
-                                       (markerActivity != null && markerActivity.equals(selectedActivity));
-                
-                Log.d("MapsDebug", String.format(
-                    "Marker %s: distance=%.2f, activity=%s, selected=%s, visible=%b",
-                    postId, distance, markerActivity, selectedActivity, (isWithinRadius && matchesActivity)
-                ));
-                
-                entry.getValue().setVisible(isWithinRadius && matchesActivity);
-       
+                    String mappedMarkerActivity = ActivityTypeMapper.mapOldToNewActivityType(markerActivity);
+                    boolean isWithinRadius = distance <= radius;
+                    boolean matchesActivity = selectedActivity.equals("All") || 
+                                           (mappedMarkerActivity != null && mappedMarkerActivity.equals(selectedActivity));
+                    
+                    Log.d("MapsDebug", String.format(
+                        "Marker %s: distance=%.2f, activity=%s, mapped=%s, selected=%s, visible=%b",
+                        postId, distance, markerActivity, mappedMarkerActivity, selectedActivity, (isWithinRadius && matchesActivity)
+                    ));
+                    
+                    entry.getValue().setVisible(isWithinRadius && matchesActivity);
                 }
             }
         });

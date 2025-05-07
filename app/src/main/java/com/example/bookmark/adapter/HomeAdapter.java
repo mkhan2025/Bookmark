@@ -24,6 +24,7 @@ import com.example.bookmark.fragments.Profile;
 import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.CommentModel;
 import com.example.bookmark.model.HomeModel;
+import com.example.bookmark.utils.ActivityTypeMapper;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import androidx.core.content.ContextCompat;
 
 //responsible for displaying the posts in the RecyclerView 
 //HomeHolder is a nested class that stored references to the views in the home_items layout
@@ -459,11 +461,12 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
     }
 
     private void setActivityTagStyle(ImageView activityTV, String activityType) {
-        switch (activityType.toLowerCase()) {
-            case "nature and adventure":
+        String mappedType = ActivityTypeMapper.mapOldToNewActivityType(activityType);
+        switch (mappedType.toLowerCase()) {
+            case "nature & adventure":
                 activityTV.setImageResource(R.drawable.adventure);
                 break;
-            case "xultural & historical":
+            case "cultural & historical":
                 activityTV.setImageResource(R.drawable.cultural);
                 break;
             case "food & drink":
@@ -524,6 +527,51 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
             locationTV = itemView.findViewById(R.id.locationTV);
             activityTypeTV = itemView.findViewById(R.id.activityTV);
             commentBtn = itemView.findViewById(R.id.commentBtn);
+        }
+    }
+
+    private void migrateActivityTypes() {
+        FirebaseFirestore.getInstance()
+            .collection("Users")
+            .get()
+            .addOnSuccessListener(userDocuments -> {
+                for (DocumentSnapshot userDoc : userDocuments) {
+                    userDoc.getReference()
+                        .collection("Post Images")
+                        .get()
+                        .addOnSuccessListener(postDocuments -> {
+                            for (DocumentSnapshot postDoc : postDocuments) {
+                                String oldActivityType = postDoc.getString("activityType");
+                                String newActivityType = mapOldToNewActivityType(oldActivityType);
+                                
+                                if (newActivityType != null) {
+                                    postDoc.getReference()
+                                        .update("activityType", newActivityType)
+                                        .addOnSuccessListener(aVoid -> 
+                                            Log.d("Migration", "Updated activity type for post: " + postDoc.getId()))
+                                        .addOnFailureListener(e -> 
+                                            Log.e("Migration", "Error updating post: " + postDoc.getId(), e));
+                                }
+                            }
+                        });
+                }
+            });
+    }
+
+    private String mapOldToNewActivityType(String oldType) {
+        switch (oldType.toLowerCase()) {
+            case "outdoor":
+                return "Nature & Adventure";
+            case "indoor":
+                return "Indoor";
+            case "adventure":
+                return "Nature & Adventure";
+            case "eating":
+                return "Food & Drink";
+            case "tourist":
+                return "Cultural & Historical";
+            default:
+                return null;
         }
     }
 }

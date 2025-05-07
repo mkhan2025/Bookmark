@@ -133,11 +133,15 @@ public class Search extends Fragment {
     public void setUpActivityDropdown(){
                 Log.d("SearchFragment", "Setting up activity dropdown");
         List<SpinnerModel> list = new ArrayList<>();
-        list.add(new SpinnerModel("Outdoor"));
+        list.add(new SpinnerModel("Nature & Adventure"));
+        list.add(new SpinnerModel("Cultural & Historical"));
+        list.add(new SpinnerModel("Food & Drink"));
+        list.add(new SpinnerModel("Events & Entertainment"));
+        list.add(new SpinnerModel("Relaxation & Wellness"));
+        list.add(new SpinnerModel("Shopping"));
         list.add(new SpinnerModel("Indoor"));
-        list.add(new SpinnerModel("Adventure"));
-        list.add(new SpinnerModel("Eating"));
-        list.add(new SpinnerModel("Tourist"));
+        list.add(new SpinnerModel("Outdoor"));
+        list.add(new SpinnerModel("Transit"));
         list.add(new SpinnerModel("All"));
         SpinnerAdapter adapter = new SpinnerAdapter(list, requireContext());
         activityDropdown.setAdapter(adapter);

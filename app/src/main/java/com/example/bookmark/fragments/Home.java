@@ -51,7 +51,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Home extends Fragment {
     private RecyclerView recyclerView;
@@ -68,6 +70,7 @@ public class Home extends Fragment {
     AutocompleteSupportFragment autocompleteFragment;
     private Spinner activityDropdown;
     private String selectedActivityType = "All";
+    private Set<String> addedPostIds;
 
     Activity activity;
     public static int LIST_SIZE = 0;
@@ -84,6 +87,7 @@ public class Home extends Fragment {
         if (getArguments() != null) {
             singlePost = (HomeModel) getArguments().getSerializable("post");
         }
+        addedPostIds = new HashSet<>();
     }
 
     @Override
@@ -471,8 +475,10 @@ public class Home extends Fragment {
             }
 
             list.clear(); // Clear list before adding new data
+            addedPostIds.clear(); // Clear the Set of added post IDs
             Log.d("HomeFragment", "Starting to load posts");
             Log.d("HomeFragment", "Current user ID: " + user.getUid());
+            Log.d("HomeFragment", "Selected activity type: " + selectedActivityType);
 
             // First get the current user's following list
             FirebaseFirestore.getInstance()
@@ -508,10 +514,17 @@ public class Home extends Fragment {
                             return;
                         }
 
+                        Log.d("HomeFragment", "Processing " + following.size() + " followed users");
                         // For each user being followed, get their posts
                         for (String followedUserId : following) {
                             if (followedUserId == null || followedUserId.isEmpty()) {
                                 Log.d("HomeFragment", "Skipping null or empty user ID");
+                                continue;
+                            }
+                            
+                            // Skip if this is the current user's ID
+                            if (followedUserId.equals(user.getUid())) {
+                                Log.d("HomeFragment", "Skipping current user's posts");
                                 continue;
                             }
                             
@@ -534,22 +547,38 @@ public class Home extends Fragment {
                                     }
 
                                     Log.d("HomeFragment", "Found " + value.size() + " posts for user: " + followedUserId);
+                                    Log.d("HomeFragment", "Current list size: " + list.size());
+                                    Log.d("HomeFragment", "Current addedPostIds size: " + addedPostIds.size());
+                                    
                                     for (QueryDocumentSnapshot snapshot : value) {
                                         if (!snapshot.exists()) {
                                             continue;
                                         }
                                         HomeModel model = snapshot.toObject(HomeModel.class);
+                                        String postId = model.getId();
+                                        
+                                        Log.d("HomeFragment", "Processing post: " + postId + " from user: " + followedUserId);
+                                        
+                                        // Skip if we've already added this post
+                                        if (addedPostIds.contains(postId)) {
+                                            Log.d("HomeFragment", "Skipping duplicate post: " + postId);
+                                            continue;
+                                        }
+                                        
                                         String postActivityType = model.getActivityType();
                                         String mappedActivityType = ActivityTypeMapper.mapOldToNewActivityType(postActivityType);
+                                        Log.d("HomeFragment", "Post activity type: " + postActivityType + ", Mapped to: " + mappedActivityType);
                                         
                                         // Only add posts that match the selected activity type or if "All" is selected
                                         if (selectedActivityType.equals("All") || 
                                             (mappedActivityType != null && mappedActivityType.equals(selectedActivityType))) {
-                                            // Make sure we don't add duplicate posts
-                                            if (!list.contains(model)) {
-                                                list.add(model);
-                                                Log.d("HomeFragment", "Added post: " + model.getId() + " from user: " + followedUserId);
-                                            }
+                                            list.add(model);
+                                            addedPostIds.add(postId);
+                                            Log.d("HomeFragment", "Added post: " + postId + " from user: " + followedUserId);
+                                            Log.d("HomeFragment", "New list size: " + list.size());
+                                            Log.d("HomeFragment", "New addedPostIds size: " + addedPostIds.size());
+                                        } else {
+                                            Log.d("HomeFragment", "Skipping post due to activity type mismatch: " + postId);
                                         }
                                     }
 
@@ -559,7 +588,8 @@ public class Home extends Fragment {
                                     });
 
                                     LIST_SIZE = list.size();
-                                    Log.d("HomeFragment", "Total posts in feed: " + LIST_SIZE);
+                                    Log.d("HomeFragment", "Final list size: " + LIST_SIZE);
+                                    Log.d("HomeFragment", "Final addedPostIds size: " + addedPostIds.size());
                                     adapter.notifyDataSetChanged();
                                 });
                         }

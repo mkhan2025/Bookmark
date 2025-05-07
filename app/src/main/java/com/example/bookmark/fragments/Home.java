@@ -71,6 +71,8 @@ public class Home extends Fragment {
     private Spinner activityDropdown;
     private String selectedActivityType = "All";
     private Set<String> addedPostIds;
+    private FrameLayout placesSearchContainer;
+    private boolean isSinglePostMode = false;
 
     Activity activity;
     public static int LIST_SIZE = 0;
@@ -86,6 +88,8 @@ public class Home extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             singlePost = (HomeModel) getArguments().getSerializable("post");
+            isSinglePostMode = (singlePost != null);
+            Log.d("HomeFragment", "onCreate: isSinglePostMode = " + isSinglePostMode);
         }
         addedPostIds = new HashSet<>();
     }
@@ -107,27 +111,40 @@ public class Home extends Fragment {
         adapter = new HomeAdapter(list, getActivity());
         recyclerView.setAdapter(adapter);
         
-        if (getArguments() != null) {
-            singlePost = (HomeModel) getArguments().getSerializable("post");
-            if (singlePost != null) {
-                list.clear(); 
-                list.add(singlePost);
-                adapter.notifyDataSetChanged();
+        if (isSinglePostMode && singlePost != null) {
+            Log.d("HomeFragment", "Setting up single post view for post: " + singlePost.getId());
+            // Hide UI elements we don't want to see in single post mode
+            View searchContainer = view.findViewById(R.id.search_container);
+            if (searchContainer != null) {
+                searchContainer.setVisibility(View.GONE);
             }
-        }
-        
-        else
-        {
+            if (trendingBtn != null) {
+                trendingBtn.setVisibility(View.GONE);
+            }
+            if (localBtn != null) {
+                localBtn.setVisibility(View.GONE);
+            }
+            if (activityDropdown != null) {
+                activityDropdown.setVisibility(View.GONE);
+            }
+            
+            list.clear(); 
+            list.add(singlePost);
+            adapter.notifyDataSetChanged();
+            Log.d("HomeFragment", "Single post added to list, size: " + list.size());
+            loadBookmarksFromFirestore();
+            clickListener();
+        } else {
+            Log.d("HomeFragment", "Loading full feed");
             loadDataFromFirestore();
+            loadBookmarksFromFirestore();
+            clickListener();
         }
-        loadBookmarksFromFirestore();
-        clickListener();
 
         // Initialize Places API
         String apiKey = "AIzaSyA7chOcKSTr-xNmL6bwz_Txw5LQABIzNC4";
         try {
             Places.initializeWithNewPlacesApiEnabled(getContext(), apiKey);
-            //places client is the client that will be used to search for places which in this case is the autocomplete fragment. 
             PlacesClient placesClient = Places.createClient(getContext());
             
             if (placesClient == null) {
@@ -135,20 +152,15 @@ public class Home extends Fragment {
                 return;
             }
             
-            //getChildFragmentManager is used to get the fragment manager of the parent fragment which in this case is the home fragment. 
-            //the role of the autocomplete fragment is to search for places and display them to the user. 
             autocompleteFragment = (AutocompleteSupportFragment)
                 getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
                 
-            // Set up Places API
             autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
             autocompleteFragment.setHint("Search places");
             
-            // Get the search container
-            FrameLayout placesSearchContainer = view.findViewById(R.id.places_search_container);
+            placesSearchContainer = view.findViewById(R.id.places_search_container);
             
             if (placesSearchContainer != null) {
-                // Set up the Places Autocomplete listener
                 autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
                     @Override
                     public void onPlaceSelected(@NonNull Place place) {
@@ -162,7 +174,6 @@ public class Home extends Fragment {
                         search.setArguments(bundle);
 
                         View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
-                        //this is used to make sure that the mainFrameLayout is visible when the user selects a place. 
                         if (frameLayout != null) {
                             frameLayout.setVisibility(View.VISIBLE);
                         }
@@ -188,7 +199,7 @@ public class Home extends Fragment {
 
         private void clickListener () {
             //adding click listener so that if a userName is clicked, the user will be redirected to the user's profile
-            
+
             localBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -291,7 +302,7 @@ public class Home extends Fragment {
             EditText userSearchInput = view.findViewById(R.id.user_search_input);
             SwitchMaterial searchTypeSwitch = view.findViewById(R.id.searchTypeSwitch);
 
-            Log.d("HomeFragment", "Search containers initialized: " + 
+            Log.d("HomeFragment", "Search containers initialized: " +
                 "placesSearchContainer=" + (placesSearchContainer != null) + ", " +
                 "userSearchContainer=" + (userSearchContainer != null) + ", " +
                 "userSearchInput=" + (userSearchInput != null) + ", " +
@@ -382,23 +393,32 @@ public class Home extends Fragment {
 
             SpinnerAdapter adapter = new SpinnerAdapter(activityTypes, requireContext());
             activityDropdown.setAdapter(adapter);
-            activityDropdown.setSelection(0);  // Set "All" as default selection
+            
+            // Only set up the listener if we're not in single post mode
+            if (!isSinglePostMode) {
+                activityDropdown.setSelection(0);  // Set "All" as default selection
+                activityDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        SpinnerModel selectedModel = (SpinnerModel) parent.getItemAtPosition(position);
+                        selectedActivityType = selectedModel.getActivityType();
+                        Log.d("HomeFragment", "Selected activity type: " + selectedActivityType);
+                        loadDataFromFirestore();
+                    }
 
-            activityDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    SpinnerModel selectedModel = (SpinnerModel) parent.getItemAtPosition(position);
-                    selectedActivityType = selectedModel.getActivityType();
-                    Log.d("HomeFragment", "Selected activity type: " + selectedActivityType);
-                    loadDataFromFirestore();
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    selectedActivityType = "All";
-                    loadDataFromFirestore();
-                }
-            });
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        selectedActivityType = "All";
+                        loadDataFromFirestore();
+                    }
+                });
+            } else {
+                // In single post mode, disable the spinner
+                activityDropdown.setEnabled(false);
+                activityDropdown.setVisibility(View.GONE);
+               
+                Log.d("HomeFragment", "Activity dropdown disabled in single post mode");
+            }
         }
 
         private void searchUsers(String username) {

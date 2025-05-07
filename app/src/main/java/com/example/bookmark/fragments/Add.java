@@ -106,14 +106,21 @@ public class Add extends Fragment {
     private final ActivityResultLauncher<CropImageContractOptions> cropImage =
             //method registerForActivityResult is used to register the activity result of the cropImage
             registerForActivityResult(new CropImageContract(), result -> {
+                Log.d("AddFragment", "CropImage result received");
                 if (result.isSuccessful()) {
+                    Log.d("AddFragment", "CropImage was successful");
                     imageUri = result.getUriContent();
                     if (imageUri != null) {
+                        Log.d("AddFragment", "Image URI is not null: " + imageUri.toString());
                         Glide.with(requireContext()).load(imageUri).into(img);
                         img.setVisibility(View.VISIBLE);
-                        next.setVisibility(View.VISIBLE); // Show the next button
+                        next.setVisibility(View.VISIBLE);
+                        Log.d("AddFragment", "Next button visibility set to VISIBLE");
+                    } else {
+                        Log.e("AddFragment", "Image URI is null after successful crop");
                     }
                 } else {
+                    Log.e("AddFragment", "CropImage failed: " + result.getError().getMessage());
                     Toast.makeText(getContext(), "Cropping failed: " + result.getError().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
@@ -127,6 +134,7 @@ public class Add extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("AddFragment", "onViewCreated called");
         Log.d("FirestoreTest", "Firestore instance: " + FirebaseFirestore.getInstance());
         init(view);
 
@@ -189,7 +197,7 @@ public class Add extends Fragment {
                     }
                 });
                 img.setVisibility(View.VISIBLE);
-                next.setVisibility(View.GONE);
+                 next.setVisibility(View.GONE);
                 Log.d("PlacesAPI", "Place selection listener set successfully");
             } catch (Exception e) {
                 Log.e("PlacesAPI", "Error setting up AutocompleteFragment: " + e.getMessage());
@@ -199,10 +207,14 @@ public class Add extends Fragment {
     }
 
     private void clickListener() {
+        Log.d("AddFragment", "clickListener called");
         // Click listener for selecting an image
-        img.setOnClickListener(v -> openImagePicker());
+        img.setOnClickListener(v -> {
+            Log.d("AddFragment", "Image clicked, opening image picker");
+            openImagePicker();
+        });
         adapter.SendImage(picUri -> {
-//            imageUri = picUri;
+            Log.d("AddFragment", "Gallery image selected: " + picUri.toString());
             CropImageOptions options = new CropImageOptions();
             options.guidelines = CropImageView.Guidelines.ON;
             options.aspectRatioX = 4;
@@ -211,7 +223,9 @@ public class Add extends Fragment {
         });
 
         next.setOnClickListener(v -> {
+            Log.d("AddFragment", "Next button clicked");
             if (imageUri == null) {
+                Log.e("AddFragment", "Image URI is null when next button clicked");
                 Toast.makeText(getContext(), "Please select an image first!", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -334,11 +348,13 @@ public class Add extends Fragment {
     }
 
     private void init(View view) {
+        Log.d("AddFragment", "init called");
         descET = view.findViewById(R.id.descriptionET);
-        img = view.findViewById(R.id.imageView);
+        img = view.findViewById(R.id.img);
         recyclerView = view.findViewById(R.id.recyclerView);
         back = view.findViewById(R.id.backBtn);
         next = view.findViewById(R.id.forwardBtn);
+        Log.d("AddFragment", "Next button found: " + (next != null));
         user = FirebaseAuth.getInstance().getCurrentUser();
         dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.loading_dialog);

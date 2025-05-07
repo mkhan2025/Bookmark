@@ -1,109 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding = "8dp"
-    tools:context=".fragments.Add">
-    <RelativeLayout
-        android:id = "@+id/layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical">
+    android:background="@android:color/white">
 
-        <ImageButton
-            android:id="@+id/backBtn"
-            android:layout_margin="4dp"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:padding="4dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="-2dp"
-            android:elevation="3dp"
-            android:background="@drawable/back" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="10dp"
+        android:fillViewport="true">
 
-        <ImageButton
-            android:layout_margin="4dp"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:padding="4dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:id = "@+id/forwardBtn"
-            android:layout_alignParentEnd="true"
-            android:elevation = "3dp"
-            android:visibility="gone"
-            android:background="@drawable/forward"
-            />
-    </RelativeLayout>
-    <LinearLayout
-        android:layout_below="@id/layout"
-        android:id="@+id/search__layout"
-        android:focusableInTouchMode="true"
-        android:descendantFocusability="afterDescendants"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-    <fragment
-        android:id = "@+id/autocomplete_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout"
-        android:clickable="true"
-        android:focusable="true"
-        android:name = "com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:hint="Select Item">
-        <AutoCompleteTextView
-            android:id = "@+id/autocomplete_text"
-            android:layout_below="@id/autocomplete_fragment"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            style = "@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" />
-    </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/search__layout">
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@android:color/white">
 
-        <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-            <EditText
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id = "@+id/descriptionET"
-    android:background="@android:color/transparent"
-    android:hint = "Add a description about this post"
-    android:minLines="12"/>
-            <View
-    android:layout_width="match_parent"
-    android:layout_height="1dp"
-    android:background="#000"
-    android:layout_below="@id/descriptionET"
-    android:layout_margin="6dp"
-    android:id = "@+id/view"/>
-            <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:visibility="gone"
-        android:scaleType="centerCrop"
-        android:id = "@+id/imageView"
-        android:contentDescription="@null"
-        android:layout_below="@id/view"
-        android:background="@color/colorPrimary"/>
+            <!-- Places Autocomplete Fragment -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="12dp">
+
+                <fragment
+                    android:id="@+id/autocomplete_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Activity Type Dropdown -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/autocomplete_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Activity Type"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Description input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/descriptionET"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Add a description about this post"
+                    android:minLines="3"
+                    android:gravity="top"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Image Preview Section -->
+            <FrameLayout
+                android:id="@+id/layout"
+                android:layout_width="match_parent"
+                android:layout_height="350dp"
+                android:layout_marginBottom="12dp"
+                android:background="@android:color/darker_gray">
+
+                <ImageView
+                    android:id="@+id/img"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/camera_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/camera"
+                    app:backgroundTint="@color/colorGreen"
+                    app:tint="@android:color/white"/>
+            </FrameLayout>
+
+            <!-- Gallery RecyclerView (optional/hidden initially) -->
             <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below ="@id/imageView"
-        android:id = "@+id/recyclerView"/>
-        </RelativeLayout>
-    </ScrollView>
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="12dp"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:visibility="gone"/>
+            <ImageButton
+                android:id="@+id/forwardBtn"
+                android:layout_width="70dp"
+                android:layout_height="56dp"
+                android:layout_margin="16dp"
+                android:layout_gravity="center"
+                android:text="Next"
+                android:textAllCaps="false"
+                android:background="@drawable/forward"
+                android:textColor="@android:color/white"
+                app:icon="@drawable/forward"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/colorGreen"
+                android:elevation="4dp"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 
-</RelativeLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

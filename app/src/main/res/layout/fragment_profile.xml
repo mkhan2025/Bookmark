@@ -47,9 +47,26 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
+            android:visibility="gone"
             android:src="@drawable/bookmark" />
 
+        <!-- Logout button -->
+        <ImageButton
+            android:id="@+id/logoutBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_below="@id/bookmarkBtn"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/circle"
+            android:src="@drawable/exit"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Logout" />
+
         <!-- Username and bio -->
+
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

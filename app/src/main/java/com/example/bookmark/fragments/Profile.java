@@ -283,6 +283,26 @@ public class Profile extends Fragment {
         editProfileBtn = view.findViewById(R.id.edit_profileImage);
 
         setUpFollowButton();
+
+        // Initialize logout button
+        ImageButton logoutBtn = view.findViewById(R.id.logoutBtn);
+        Log.d("LogoutDebug", "Logout button initialized, isMyProfile: " + isMyProfile);
+        logoutBtn.setOnClickListener(v -> {
+            Log.d("LogoutDebug", "Logout button clicked");
+            // Only show logout button on user's own profile
+            if (isMyProfile) {
+                Log.d("LogoutDebug", "Attempting to sign out user");
+                // Simply sign out - MainActivity will handle navigation
+                FirebaseAuth.getInstance().signOut();
+                Log.d("LogoutDebug", "User signed out successfully");
+            } else {
+                Log.d("LogoutDebug", "Not user's profile, logout action ignored");
+            }
+        });
+        
+        // Only show logout button on user's own profile
+        logoutBtn.setVisibility(isMyProfile ? View.VISIBLE : View.GONE);
+        Log.d("LogoutDebug", "Logout button visibility set to: " + (isMyProfile ? "VISIBLE" : "GONE"));
     }
     private void setUpFollowButton() {
         if (user == null) {

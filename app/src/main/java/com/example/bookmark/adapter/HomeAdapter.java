@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.bookmark.R;
@@ -42,6 +43,7 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import androidx.core.content.ContextCompat;
+import com.tbuonomo.viewpagerdotsindicator.SpringDotsIndicator;
 
 //responsible for displaying the posts in the RecyclerView 
 //HomeHolder is a nested class that stored references to the views in the home_items layout
@@ -88,13 +90,24 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
             holder.likeBtn.setImageDrawable(context.getDrawable(R.drawable.heart));
         }
 
-//        holder.timeTV.setText(list.get(position).getTimeStamp());
         Glide.with(context.getApplicationContext()).load(list.get(position).getProfileImage()).placeholder(R.drawable.profile_image).timeout(6500).into(holder.profilePic);
-        Glide.with(context.getApplicationContext())
-                .load(list.get(position).getImageUrl())  // Use local resource
-                .placeholder(R.drawable.map)  // Replace with a placeholder if needed
-                .timeout(7000)
-                .into(holder.imageView);
+        
+        // Set up image carousel
+        List<String> imageUrls = list.get(position).getImageUrls();
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            ImageCarouselAdapter carouselAdapter = new ImageCarouselAdapter(imageUrls);
+            holder.imageViewPager.setAdapter(carouselAdapter);
+            holder.dotsIndicator.setViewPager2(holder.imageViewPager);
+            holder.dotsIndicator.setVisibility(View.VISIBLE);
+        } else {
+            // Fallback to single image if no multiple images
+            List<String> singleImage = new ArrayList<>();
+            singleImage.add(list.get(position).getImageUrl());
+            ImageCarouselAdapter carouselAdapter = new ImageCarouselAdapter(singleImage);
+            holder.imageViewPager.setAdapter(carouselAdapter);
+            holder.dotsIndicator.setVisibility(View.GONE);
+        }
+
         holder.locationTV.setText(list.get(position).getLocationName());
         holder.descriptionTV.setText(list.get(position).getDescription());
         holder.activityTypeTV.setImageResource(R.drawable.profile_image);
@@ -542,12 +555,12 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         private TextView likeCountTV;
         private TextView descriptionTV;
         private ImageView activityTypeTV;
-        private ImageView imageView;
+        private ViewPager2 imageViewPager;
+        private SpringDotsIndicator dotsIndicator;
         private ImageButton likeBtn;
         private ImageButton commentBtn;
         private ImageButton shareBtn;
         private ImageButton bookmarkBtn;
-
         private ImageButton trashBtn;
 
         public HomeHolder(@NonNull View itemView) {
@@ -555,7 +568,8 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
             profilePic = itemView.findViewById(R.id.profilePic);
             usernameTV = itemView.findViewById(R.id.usernameTV);
             likeCountTV = itemView.findViewById(R.id.likeCountTV);
-            imageView = itemView.findViewById(R.id.imageView);
+            imageViewPager = itemView.findViewById(R.id.imageViewPager);
+            dotsIndicator = itemView.findViewById(R.id.dotsIndicator);
             likeBtn = itemView.findViewById(R.id.likeBtn);
             shareBtn = itemView.findViewById(R.id.shareBtn);
             bookmarkBtn = itemView.findViewById(R.id.bookmarkBtn);
@@ -563,7 +577,7 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
             locationTV = itemView.findViewById(R.id.locationTV);
             activityTypeTV = itemView.findViewById(R.id.activityTV);
             commentBtn = itemView.findViewById(R.id.commentBtn);
-            trashBtn  = itemView.findViewById(R.id.trashBtn);
+            trashBtn = itemView.findViewById(R.id.trashBtn);
         }
     }
 

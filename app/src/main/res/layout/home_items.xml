@@ -75,15 +75,26 @@
         android:layout_below="@id/usernameLayout"
         >
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:layout_below="@id/profilePic"
-        android:scaleType="centerCrop"
-        android:background="#F0F0F0"
-        android:orientation="horizontal"
-        android:id="@+id/imageView"
-        android:layout_marginTop="8dp"/>
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/imageViewPager"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_below="@id/profilePic"
+            android:background="#F0F0F0"
+            android:layout_marginTop="8dp"/>
+
+        <com.tbuonomo.viewpagerdotsindicator.SpringDotsIndicator
+            android:id="@+id/dotsIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="8dp"
+            app:dotsColor="#80FFFFFF"
+            app:dotsSize="8dp"
+            app:dotsSpacing="4dp"
+            app:dotsStrokeWidth="2dp"
+            app:dotsStrokeColor="#FFFFFF"/>
 
         <ImageButton
             android:id="@+id/trashBtn"

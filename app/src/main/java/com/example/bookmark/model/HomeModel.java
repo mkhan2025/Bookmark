@@ -16,6 +16,7 @@ public class HomeModel implements Serializable {
     private int localPostImage;
     private List<String> likedBy = new ArrayList<>();
     private List<CommentModel> comments = new ArrayList<>();
+    private List<String> imageUrls = new ArrayList<>();  // Add this field for multiple images
 
     public HomeModel() {
     }
@@ -34,7 +35,25 @@ public class HomeModel implements Serializable {
         this.likeCount = likeCount;
         this.timestamp = System.currentTimeMillis();
         this.trendingScore = trendingScore;
+        // Initialize imageUrls with the single imageUrl for backward compatibility
+        if (imageUrl != null) {
+            this.imageUrls.add(imageUrl);
+        }
     }
+
+    // Add getter and setter for imageUrls
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+        // Update single imageUrl for backward compatibility
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            this.imageUrl = imageUrls.get(0);
+        }
+    }
+
     public double getLatitude() {
         return latitude;
     }

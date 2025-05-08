@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.example.bookmark.MainActivity;
+
 public class TrendingFragment extends Fragment {
     
     private RecyclerView recyclerView;
@@ -52,6 +54,9 @@ public class TrendingFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Log.d("TrendingDebug", "onViewCreated started");
         super.onViewCreated(view, savedInstanceState);
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).resetTabIcons();
+        }
         init(view);
         clickListener();
         list = new ArrayList<>();

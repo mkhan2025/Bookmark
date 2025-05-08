@@ -77,12 +77,22 @@
                 android:layout_marginBottom="12dp"
                 android:background="@android:color/darker_gray">
 
-                <ImageView
-                    android:id="@+id/img"
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/imageViewPager"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:adjustViewBounds="true"/>
+                    android:layout_height="match_parent" />
+
+                <com.tbuonomo.viewpagerdotsindicator.SpringDotsIndicator
+                    android:id="@+id/dots_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    app:dotsColor="#CCCCCC"
+                    app:dotsSize="8dp"
+                    app:dotsSpacing="8dp"
+                    app:dotsStrokeWidth="2dp"
+                    app:dotsCornerRadius="4dp" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/camera_button"
@@ -92,18 +102,32 @@
                     android:layout_margin="16dp"
                     android:src="@drawable/camera"
                     app:backgroundTint="@color/colorGreen"
-                    app:tint="@android:color/white"/>
-            </FrameLayout>
+                    app:tint="@android:color/white"
+                    app:fabSize="normal" />
 
-            <!-- Gallery RecyclerView (optional/hidden initially) -->
+                <TextView
+                    android:id="@+id/imageCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/rounded_corners"
+                    android:padding="8dp"
+                    android:textColor="@android:color/background_dark"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+            <!-- Selected Images RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+                android:id="@+id/selectedImagesRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="100dp"
                 android:layout_marginBottom="12dp"
                 android:clipToPadding="false"
+                android:orientation="horizontal"
                 android:padding="8dp"
                 android:visibility="gone"/>
+
             <ImageButton
                 android:id="@+id/forwardBtn"
                 android:layout_width="70dp"

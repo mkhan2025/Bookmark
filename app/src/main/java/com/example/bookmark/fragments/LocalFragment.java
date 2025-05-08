@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.example.bookmark.MainActivity; 
+
 
 public class LocalFragment extends Fragment {
     private RecyclerView recyclerView;
@@ -54,6 +56,9 @@ public class LocalFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).resetTabIcons();
+        }
         init(view);
         clickListener();
         list = new ArrayList<>();

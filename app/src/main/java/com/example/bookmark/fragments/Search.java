@@ -32,6 +32,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.bookmark.MainActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,15 +71,16 @@ public class Search extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Search fragment onCreate called");
         if (getArguments() != null) {
             placeId = getArguments().getString("placeId");
             placeName = getArguments().getString("placeName");
             latitude = getArguments().getDouble("latitude");
             longitude = getArguments().getDouble("longitude");
 
-        Log.d("SearchFragment", "Received place: " + placeName);
-        Log.d("SearchFragment", "Latitude: " + latitude);
-        Log.d("SearchFragment", "Longitude: " + longitude);
+            Log.d(TAG, "Received place: " + placeName);
+            Log.d(TAG, "Latitude: " + latitude);
+            Log.d(TAG, "Longitude: " + longitude);
         }
     }
     
@@ -93,48 +95,56 @@ public class Search extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d("SearchFragment", "onViewCreated called");
-
+        Log.d(TAG, "Search fragment onViewCreated called");
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).resetTabIcons();
+        }
         init(view);
+        setUpActivityDropdown();
         
         // Check if we have user search results
         if (getArguments() != null) {
-            Log.d("SearchFragment", "Found arguments in bundle");
+            Log.d(TAG, "Found arguments in bundle");
             if (getArguments().containsKey("userResults")) {
-                Log.d("SearchFragment", "Found userResults key in arguments");
+                Log.d(TAG, "Found userResults key in arguments");
                 userList = (List<UserModel>) getArguments().getSerializable("userResults");
                 if (userList != null) {
-                    Log.d("SearchFragment", "User list size: " + userList.size());
+                    Log.d(TAG, "User list size: " + userList.size());
                     for (UserModel user : userList) {
-                        Log.d("SearchFragment", "User in list: " + user.getName());
+                        Log.d(TAG, "User in list: " + user.getName());
                     }
                     if (!userList.isEmpty()) {
-                        Log.d("SearchFragment", "Showing user results");
+                        Log.d(TAG, "Showing user results");
                         showUserResults();
                     } else {
-                        Log.d("SearchFragment", "User list is empty");
+                        Log.d(TAG, "User list is empty");
                         showNoResults();
                     }
                 } else {
-                    Log.d("SearchFragment", "User list is null");
+                    Log.d(TAG, "User list is null");
                     showNoResults();
                 }
             } else if (getArguments().containsKey("placeId")) {
-                Log.d("SearchFragment", "Found place search parameters");
+                Log.d(TAG, "Found place search parameters");
+                // Show activity dropdown for place search
+                if (activityDropdown != null) {
+                    Log.d(TAG, "Setting activity dropdown to visible");
+                    activityDropdown.setVisibility(View.VISIBLE);
+                }
                 loadSearchData();
             } else {
-                Log.d("SearchFragment", "No search parameters found in arguments");
+                Log.d(TAG, "No search parameters found in arguments");
                 showNoResults();
             }
         } else {
-            Log.d("SearchFragment", "No arguments found");
+            Log.d(TAG, "No arguments found");
             showNoResults();
         }
     }
     public void setUpActivityDropdown(){
                 Log.d("SearchFragment", "Setting up activity dropdown");
         List<SpinnerModel> list = new ArrayList<>();
-        list.add(new SpinnerModel("Nature & Adventure"));
+        list.add(new SpinnerModel("All"));
         list.add(new SpinnerModel("Cultural & Historical"));
         list.add(new SpinnerModel("Food & Drink"));
         list.add(new SpinnerModel("Events & Entertainment"));
@@ -143,7 +153,7 @@ public class Search extends Fragment {
         list.add(new SpinnerModel("Indoor"));
         list.add(new SpinnerModel("Outdoor"));
         list.add(new SpinnerModel("Transit"));
-        list.add(new SpinnerModel("All"));
+        list.add(new SpinnerModel("Nature & Adventure"));
         SpinnerAdapter adapter = new SpinnerAdapter(list, requireContext());
         activityDropdown.setAdapter(adapter);
 
@@ -373,7 +383,9 @@ public class Search extends Fragment {
             frameLayout.setVisibility(View.GONE);
             progressBar.setVisibility(View.GONE);
             noResultsText.setVisibility(View.VISIBLE);
-            activityDropdown.setVisibility(View.GONE);
+            if (activityDropdown != null) {
+                activityDropdown.setVisibility(View.GONE);
+            }
         } else {
             Log.e("SearchFragment", "Required views are null");
         }

@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Search extends Fragment {
@@ -213,12 +214,6 @@ public class Search extends Fragment {
         }
 
         GeoPoint searchCenter = new GeoPoint(latitude, longitude);
-        CollectionReference postRef = FirebaseFirestore.getInstance()
-            .collection("Users")
-            .document(user.getUid())
-            .collection("Post Images");
-        
-        Log.d("SearchFragment", "Starting Firestore query for user: " + user.getUid());
         
         // Get the selected activity type correctly
         SpinnerModel selectedModel = (SpinnerModel) activityDropdown.getSelectedItem();
@@ -227,54 +222,81 @@ public class Search extends Fragment {
         
         Log.d("SearchFragment", "Selected activity type: " + selectedActivityType);
         
-        postRef.whereGreaterThanOrEqualTo("latitude", 0)
+        // First get all users
+        FirebaseFirestore.getInstance()
+            .collection("Users")
             .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                Log.d("SearchFragment", "Query successful, found " + queryDocumentSnapshots.size() + " documents");
+            .addOnSuccessListener(userSnapshots -> {
+                Log.d("SearchFragment", "Found " + userSnapshots.size() + " users");
                 List<HomeModel> nearbyPosts = new ArrayList<>();
-                
-                for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
-                    double postLat = snapshot.getDouble("latitude");
-                    double postLong = snapshot.getDouble("longitude");
-                    String postActivity = snapshot.getString("activityType");
-                    
-                    Log.d("SearchFragment", "Checking post at: " + postLat + ", " + postLong + 
-                          " with activity: " + postActivity);
-                    
-                    boolean isWithinRadius = isWithinRadius(searchCenter, postLat, postLong, 100);
-                    Log.d("SearchFragment", "Is within radius: " + isWithinRadius);
-                    
-                    boolean matchesActivity = selectedActivityType.equals("All") || 
-                                            (postActivity != null && postActivity.equals(selectedActivityType));
-                    Log.d("SearchFragment", "Matches activity: " + matchesActivity);
-                    
-                    if (isWithinRadius && matchesActivity) {
-                        HomeModel model = snapshot.toObject(HomeModel.class);
-                        nearbyPosts.add(model);
-                        Log.d("SearchFragment", "Added post: " + model.getName());
-                    }
+                AtomicInteger processedUsers = new AtomicInteger(0);
+                int totalUsers = userSnapshots.size();
+
+                for (QueryDocumentSnapshot userSnapshot : userSnapshots) {
+                    String userId = userSnapshot.getId();
+                    // For each user, get their posts
+                    userSnapshot.getReference()
+                        .collection("Post Images")
+                        .whereGreaterThanOrEqualTo("latitude", 0)
+                        .get()
+                        .addOnSuccessListener(postSnapshots -> {
+                            Log.d("SearchFragment", "Found " + postSnapshots.size() + " posts for user " + userId);
+                            
+                            for (QueryDocumentSnapshot postSnapshot : postSnapshots) {
+                                double postLat = postSnapshot.getDouble("latitude");
+                                double postLong = postSnapshot.getDouble("longitude");
+                                String postActivity = postSnapshot.getString("activityType");
+                                
+                                Log.d("SearchFragment", "Checking post at: " + postLat + ", " + postLong + 
+                                      " with activity: " + postActivity);
+                                
+                                boolean isWithinRadius = isWithinRadius(searchCenter, postLat, postLong, 100);
+                                Log.d("SearchFragment", "Is within radius: " + isWithinRadius);
+                                
+                                boolean matchesActivity = selectedActivityType.equals("All") || 
+                                                        (postActivity != null && postActivity.equals(selectedActivityType));
+                                Log.d("SearchFragment", "Matches activity: " + matchesActivity);
+                                
+                                if (isWithinRadius && matchesActivity) {
+                                    HomeModel model = postSnapshot.toObject(HomeModel.class);
+                                    model.setUid(userId); // Set the user ID for the post
+                                    model.setId(postSnapshot.getId()); // Set the post ID
+                                    nearbyPosts.add(model);
+                                    Log.d("SearchFragment", "Added post: " + model.getName());
+                                }
+                            }
+
+                            // Check if we've processed all users
+                            if (processedUsers.incrementAndGet() == totalUsers) {
+                                Log.d("SearchFragment", "Processed all users, found " + nearbyPosts.size() + " matching posts");
+                                
+                                // Update the adapter
+                                list.addAll(nearbyPosts);
+                                searchAdapter.notifyDataSetChanged();
+                                
+                                // Show/hide frameLayout based on results
+                                if (nearbyPosts.isEmpty()) {
+                                    Log.d("SearchFragment", "No posts found, showing empty state");
+                                    frameLayout.setVisibility(View.GONE);
+                                } else {
+                                    Log.d("SearchFragment", "Posts found, showing frameLayout");
+                                    frameLayout.setVisibility(View.VISIBLE);
+                                    recyclerView.setVisibility(View.VISIBLE);
+                                }
+                                
+                                hideLoading();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("SearchFragment", "Error loading posts for user " + userId + ": " + e.getMessage());
+                            if (processedUsers.incrementAndGet() == totalUsers) {
+                                hideLoading();
+                            }
+                        });
                 }
-                
-                Log.d("SearchFragment", "Found " + nearbyPosts.size() + " matching posts");
-                
-                // Update the adapter
-                list.addAll(nearbyPosts);
-                searchAdapter.notifyDataSetChanged();
-                
-                // Show/hide frameLayout based on results
-                if (nearbyPosts.isEmpty()) {
-                    Log.d("SearchFragment", "No posts found, showing empty state");
-                    frameLayout.setVisibility(View.GONE);
-                } else {
-                    Log.d("SearchFragment", "Posts found, showing frameLayout");
-                    frameLayout.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.VISIBLE);
-                }
-                
-                hideLoading();
             })
             .addOnFailureListener(e -> {
-                Log.e("SearchFragment", "Error loading posts: " + e.getMessage());
+                Log.e("SearchFragment", "Error loading users: " + e.getMessage());
                 hideLoading();
             });
     }

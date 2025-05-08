@@ -27,6 +27,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.example.bookmark.utils.PasswordValidator;
 
 
 public class LoginFragment extends Fragment {
@@ -88,10 +89,13 @@ public class LoginFragment extends Fragment {
                 {
                     emailET.setError("Please enter a valid email");
                 }
-                if (password.isEmpty() || password.length() < 6)
-                {
-                    passwordET.setError("Please enter a valid password");
+                
+                PasswordValidator.ValidationResult passwordValidation = PasswordValidator.validatePassword(password);
+                if (!passwordValidation.isValid()) {
+                    passwordET.setError(passwordValidation.getErrorMessage());
+                    return;
                 }
+                
                 progressBar.setVisibility(VISIBLE);
                 // firebaseAuth automatically handles authentication.
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {

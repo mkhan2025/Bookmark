@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.bookmark.utils.PasswordValidator;
+
 public class CreateAccountFragment extends Fragment {
     private EditText nameET;
     private ProgressBar progressBar;
@@ -104,10 +106,13 @@ public class CreateAccountFragment extends Fragment {
                     emailET.setError("Please enter a valid email");
                     return;
                 }
-                if (password.isEmpty() || password.length()<6)
-                {
-                    passwordET.setError("Please enter a valid password");
+                
+                PasswordValidator.ValidationResult passwordValidation = PasswordValidator.validatePassword(password);
+                if (!passwordValidation.isValid()) {
+                    passwordET.setError(passwordValidation.getErrorMessage());
+                    return;
                 }
+                
                 if (!password.equals(confirmPass))
                 {
                     confirmPassET.setError("Passwords do not match");

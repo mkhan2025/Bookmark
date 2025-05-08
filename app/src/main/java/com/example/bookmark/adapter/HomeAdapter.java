@@ -11,6 +11,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.widget.Button;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -25,7 +29,6 @@ import com.example.bookmark.model.BookmarksModel;
 import com.example.bookmark.model.CommentModel;
 import com.example.bookmark.model.HomeModel;
 import com.example.bookmark.utils.ActivityTypeMapper;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -71,6 +74,9 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeHolder> {
         int likeCount = list.get(position).getLikeCount();
         holder.likeCountTV.setText(String.valueOf(likeCount));
         holder.usernameTV.setText(list.get(position).getName());
+        if (list.get(position).getUid().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+        holder.trashBtn.setVisibility(View.VISIBLE);
+        }
         Log.d("HomeAdapter", "Setting username: " + list.get(position).getName());
         checkBookmarkStatus(list.get(position).getId(), holder.bookmarkBtn);
 
@@ -329,45 +335,73 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         }
     }
 });
-        
- 
     }
 });
-//holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
-//    @Override
-//    public void onClick(View v) {
-//        Log.d("Bookmark", "Bookmark button clicked");
-//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-//        if(user == null){
-//            Toast.makeText(context, "Please login to bookmark", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//        String postId = list.get(position).getId();
-//        DocumentReference bookmarkRef = FirebaseFirestore.getInstance().collection("Users").document(user.getUid()).collection("Bookmarks").document(postId);
-//        bookmarkRef.get().addOnSuccessListener(documentSnapshot -> {
-//            BookmarksModel bookmark = null;
-//            if (documentSnapshot.exists()) {
-//                bookmarkRef.delete().addOnSuccessListener(aVoid -> {
-//                    holder.bookmarkBtn.setImageResource(R.drawable.bookmark);
-//                    Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
-//                }).addOnFailureListener(e -> {
-//                    Toast.makeText(context, "Failed to remove bookmark", Toast.LENGTH_SHORT).show();
-//                });
-//            } else {
-//                bookmark = new BookmarksModel(postId, list.get(position).getUid(), new Date(System.currentTimeMillis()));
-//            }
-//            bookmarkRef.set(bookmark).addOnSuccessListener(aVoid -> {
-//                holder.bookmarkBtn.setImageResource(R.drawable.heart);
-//                Toast.makeText(context, "Bookmark added", Toast.LENGTH_SHORT).show();
-//            }).addOnFailureListener(e -> {
-//                Toast.makeText(context, "Failed to add bookmark", Toast.LENGTH_SHORT).show();
-//            });
-//
-//        });
-//
-//    }
-//});
 
+        // Move trash button click listener here, outside of any other click listeners
+        holder.trashBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("TrashButton", "Trash button clicked - initial click detected");
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser == null) {
+                    Log.d("TrashButton", "No current user found");
+                    Toast.makeText(context, "Please login to delete posts", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String postId = list.get(position).getId();
+                String originalUserId = list.get(position).getUid();
+                Log.d("TrashButton", "Deleting post with ID: " + postId);
+                Log.d("TrashButton", "Original User ID: " + originalUserId);
+                Log.d("TrashButton", "Current User ID: " + currentUser.getUid());
+
+                if (postId == null || originalUserId == null) {
+                    Log.e("TrashButton", "Cannot delete post - Post ID or Original User ID is null");
+                    Toast.makeText(context, "Error: Invalid post data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Show confirmation dialog
+                AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setTitle("Delete Post")
+                    .setMessage("Are you sure you want to delete this post?")
+                    .setPositiveButton("Delete", (dialogInterface, which) -> {
+                        Log.d("TrashButton", "User confirmed deletion");
+                        DocumentReference postRef = FirebaseFirestore.getInstance()
+                            .collection("Users")
+                            .document(originalUserId)
+                            .collection("Post Images")
+                            .document(postId);
+                        postRef.delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("TrashButton", "Post deleted successfully from Firestore");
+                                Toast.makeText(context, "Post deleted successfully", Toast.LENGTH_SHORT).show();
+                                list.remove(position);
+                                notifyItemRemoved(position);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("TrashButton", "Error deleting post from Firestore", e);
+                                Toast.makeText(context, "Failed to delete post", Toast.LENGTH_SHORT).show();
+                            });
+                    })
+                    .setNegativeButton("Cancel", (dialogInterface, which) -> {
+                        Log.d("TrashButton", "User cancelled deletion");
+                        dialogInterface.dismiss();
+                    })
+                    .create();
+
+                dialog.setOnShowListener(dialogInterface -> {
+                    Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                    Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                    
+                    // Set text color for both buttons
+                    positiveButton.setTextColor(ContextCompat.getColor(context, R.color.colorBlack));
+                    negativeButton.setTextColor(ContextCompat.getColor(context, R.color.colorBlack));
+                });
+
+                dialog.show();
+            }
+        });
 
         holder.bookmarkBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -514,6 +548,8 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
         private ImageButton shareBtn;
         private ImageButton bookmarkBtn;
 
+        private ImageButton trashBtn;
+
         public HomeHolder(@NonNull View itemView) {
             super(itemView);
             profilePic = itemView.findViewById(R.id.profilePic);
@@ -527,6 +563,7 @@ sendBtn.setOnClickListener(new View.OnClickListener() {
             locationTV = itemView.findViewById(R.id.locationTV);
             activityTypeTV = itemView.findViewById(R.id.activityTV);
             commentBtn = itemView.findViewById(R.id.commentBtn);
+            trashBtn  = itemView.findViewById(R.id.trashBtn);
         }
     }
 

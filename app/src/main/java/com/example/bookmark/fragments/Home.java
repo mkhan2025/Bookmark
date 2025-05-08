@@ -128,6 +128,7 @@ public class Home extends Fragment {
                 activityDropdown.setVisibility(View.GONE);
             }
             
+            
             list.clear(); 
             list.add(singlePost);
             adapter.notifyDataSetChanged();

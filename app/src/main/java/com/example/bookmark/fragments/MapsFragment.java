@@ -57,6 +57,9 @@ import android.widget.Spinner;
 import com.example.bookmark.model.SpinnerModel;
 import com.example.bookmark.adapter.SpinnerAdapter;
 import com.example.bookmark.utils.ActivityTypeMapper;
+import com.example.bookmark.model.HomeModel;
+import androidx.fragment.app.FragmentTransaction;
+
 
 
 
@@ -75,6 +78,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private static final int REQUEST_CHECK_SETTINGS = 100;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
+    String postId;
+    String originalUserId;  
 
     public MapsFragment() {
         super(R.layout.fragment_maps);
@@ -141,6 +146,34 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         public void onMapReady(@NonNull GoogleMap googleMap){
             Log.d(TAG, "onMapReady called");
             this.googleMap = googleMap;
+
+            // Add marker click listener
+            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    FirebaseFirestore.getInstance().collection("Users").document(originalUserId).collection("Post Images").document(postId).get().addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            HomeModel post = documentSnapshot.toObject(HomeModel.class);
+                            post.setUid(originalUserId);
+                            post.setId(postId);
+                            Home home = new Home();
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("post", post);
+                            home.setArguments(bundle);
+
+                            View frameLayout = getActivity().findViewById(R.id.mainFrameLayout);
+                            if (frameLayout != null) {
+                                frameLayout.setVisibility(View.VISIBLE);
+                            }
+                            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                            transaction.replace(R.id.mainFrameLayout, home);
+                            transaction.addToBackStack(null).commit();
+                            
+                        }
+                    });
+                    return false;
+                }
+            });
 
             Dexter.withContext(requireContext())
                     .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -285,8 +318,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                                 Log.e("MapsDebug", "Bookmark document doesn't exist");
                                 return;
                             }
-                            String postId = bookmark.getString("bookmarkedPostId");
-                            String originalUserId = bookmark.getString("originalUserId");
+                            postId = bookmark.getString("bookmarkedPostId");
+                            originalUserId = bookmark.getString("originalUserId");
                             if (processedPosts.contains(postId)) {
                                 Log.d("MapsDebug", "Skipping duplicate postId: " + postId);
                                 continue;
